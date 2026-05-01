@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react";
 import {
   BarChart,
   Bar,
@@ -11,20 +12,56 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 
-// Sample Data
-const data = [
-  { month: "Nov 2025", count: 0 },
-  { month: "Dec 2025", count: 0 },
-  { month: "Jan 2026", count: 0 },
-  { month: "Feb 2026", count: 16 },
-  { month: "Mar 2026", count: 13 },
-  { month: "Apr 2026", count: 24 },
-];
+interface User {
+  createdAt: string;
+}
 
-export default function UserSignupChart() {
+export default function UserSignupChart({ users = [] }: { users: User[] }) {
+
+  const mockUsers = [
+    { createdAt: "2026-03-10T10:00:00Z" },
+    { createdAt: "2026-03-15T10:00:00Z" },
+    { createdAt: "2026-03-25T10:00:00Z" },
+    { createdAt: "2026-04-05T10:00:00Z" },
+    { createdAt: "2026-04-12T10:00:00Z" },
+    { createdAt: "2026-04-28T10:00:00Z" },
+    { createdAt: "2026-04-29T10:00:00Z" },
+    { createdAt: "2026-02-15T10:00:00Z" },
+  ];
+
+  const displayUsers = users.length > 0 ? users : mockUsers;
+
+  const chartData = useMemo(() => {
+    const monthsMap: Record<string, number> = {};
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    const today = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const label = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+      monthsMap[label] = 0;
+    }
+
+    displayUsers.forEach(user => {
+      const date = new Date(user.createdAt);
+      if (!isNaN(date.getTime())) {
+        const label = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+        if (monthsMap[label] !== undefined) {
+          monthsMap[label]++;
+        }
+      }
+    });
+
+    return Object.entries(monthsMap).map(([month, count]) => ({
+      month,
+      count
+    }));
+  }, [displayUsers]);
+
   return (
     <div className={cn(
-      "w-full h-100 p-6 rounded-2xl border transition-all duration-300",
+      "w-full h-[400px] p-6 rounded-2xl border transition-all duration-300",
       "bg-white border-slate-200",
       "dark:bg-[#111318] dark:border-slate-800"
     )}>
@@ -32,54 +69,45 @@ export default function UserSignupChart() {
         <h3 className="font-semibold text-lg text-slate-900 dark:text-white">
           Total Users Sign Up
         </h3>
-        <button className="text-xs px-3 py-1 rounded-md border transition-colors bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-300 border-slate-200 dark:border-slate-700">
+        <span className="text-xs px-3 py-1 rounded-md border bg-slate-50 dark:bg-slate-800 text-slate-500 dark:border-slate-700">
           Past 6 months
-        </button>
+        </span>
       </div>
 
-      <ResponsiveContainer width="100%" height="90%">
-        <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 60 }}>
-          <CartesianGrid
-            vertical={false}
-            stroke="currentColor"
-            className="text-slate-200 dark:text-slate-800"
-            strokeDasharray="0"
-          />
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-800" />
           <XAxis
             dataKey="month"
             axisLine={false}
             tickLine={false}
             tick={{ fill: 'currentColor', fontSize: 11 }}
-            className="text-slate-400 dark:text-slate-500"
+            className="text-slate-400"
             dy={10}
-            angle={-45}
-            textAnchor="end"
-            interval={0}
           />
           <YAxis
             axisLine={false}
             tickLine={false}
             tick={{ fill: 'currentColor', fontSize: 12 }}
-            className="text-slate-400 dark:text-slate-500"
-            domain={[0, 24]}
-            ticks={[0, 4, 8, 12, 16, 20, 24]}
+            className="text-slate-400"
+            allowDecimals={false}
           />
           <Tooltip
-            cursor={{ fill: 'currentColor', className: 'text-slate-100 dark:text-white/5' }}
+            cursor={{ fill: 'rgba(245, 158, 11, 0.1)' }}
             contentStyle={{
-              backgroundColor: 'var(--tooltip-bg)',
-              border: '1px solid var(--tooltip-border)',
               borderRadius: '12px',
-              fontSize: '12px'
+              backgroundColor: '#111318',
+              border: '1px solid #334155',
+              color: '#fff'
             }}
-            wrapperClassName="dark:![--tooltip-bg:#1c1f26] ![--tooltip-bg:#ffffff] dark:![--tooltip-border:#334155] ![--tooltip-border:#e2e8f0]"
+            itemStyle={{ color: '#f59e0b' }}
           />
           <Bar
             dataKey="count"
             fill="#f59e0b"
-            radius={[6, 6, 0, 0]}
-            barSize={32}
-            className="hover:opacity-80 transition-opacity"
+            radius={[4, 4, 0, 0]}
+            barSize={40}
+            animationDuration={1500}
           />
         </BarChart>
       </ResponsiveContainer>

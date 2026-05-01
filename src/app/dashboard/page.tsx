@@ -3,37 +3,137 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Info } from "lucide-react";
+import { useEffect, useState } from "react";
+
 
 import UserSignupChart from "./components/ChartCompound";
 import UsersList from "./components/UsersList";
 
 export default function Dashboard() {
 
+  const [data, setData] = useState([]);
+  const [videos, setVideos] = useState([]);
+  const [series, setSeries] = useState([]);
+  const [smallGroup, setSmallGroup] = useState([])
+
+
   const stats = [
     {
       title: "Total Users",
-      value: "49",
+      value: data?.length || "...",
       icon: <Info size={16} className="text-slate-500" />,
     },
     {
       title: "Total Videos",
-      value: "102",
+      value: videos?.length || "...",
       icon: <Info size={16} className="text-slate-500" />,
     },
     {
       title: "Total Series",
-      value: "16",
+      value: series?.length || "...",
       icon: <Info size={16} className="text-slate-500" />,
     },
     {
       title: "Total Small Group",
-      value: "3",
+      value: smallGroup?.length || "...",
       icon: <Info size={16} className="text-slate-500" />,
     },
   ];
 
+  useEffect(() => {
+
+    // all users
+    const fetchUsersData = async () => {
+      try {
+        const response = await fetch("/dashboard/api", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authorized token")}`
+          }
+        });
+        if (!response.ok) throw new Error("Failed to fetch");
+
+        const result = await response.json();
+
+        setData(result?.data?.items || []);
+        
+      } catch (err) {
+        console.error("Fetch error:", err);
+        
+      }
+    };
+    fetchUsersData();
+
+    // all videos
+    const fetchVideosData = async () => {
+      try {
+        const response = await fetch("/dashboard/videos/api", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authorized token")}`
+          }
+        });
+        if (!response.ok) throw new Error("Failed to fetch");
+
+        const result = await response.json();
+        setVideos(result?.data?.items || []);
+        
+      } catch (err) {
+        console.error("Fetch error:", err);
+        
+      }
+    };
+    fetchVideosData();
+
+    // all series
+    const fetchSeriesData = async () => {
+      try {
+        const response = await fetch("/dashboard/series/api", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authorized token")}`
+          }
+        });
+        if (!response.ok) throw new Error("Failed to fetch");
+
+        const result = await response.json();
+        setSeries(result?.data?.items);
+        ;
+
+      } catch (err) {
+        console.error("Fetch error:", err);
+        
+      }
+    };
+    fetchSeriesData();
+
+    // small group data
+    const fetchSmallGroupData = async () => {
+      try {
+        const response = await fetch("/dashboard/small-group/api", {
+          method: "GET",
+          headers: {
+
+            Authorization: `Bearer ${localStorage.getItem("authorized token")}`
+          }
+        });
+        if (!response.ok) throw new Error("Failed to fetch");
+
+        const result = await response.json();
+        setSmallGroup(result?.data?.items || []);
+        
+      } catch (err) {
+        console.error("Fetch error:", err);
+        
+      }
+    };
+    fetchSmallGroupData();
+
+  }, []);
+
+
   return (
-    <section className="flex flex-col gap-3">
+    <section className="flex flex-col gap-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((item, index) => (
           <Card
@@ -49,7 +149,7 @@ export default function Dashboard() {
                 {item.title}
               </CardTitle>
 
-              
+
               <div className="rounded-lg">
                 {item.icon}
               </div>
@@ -64,7 +164,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <UserSignupChart />
+      <UserSignupChart users={data} />
       <UsersList />
 
     </section>

@@ -1,7 +1,11 @@
+import UsersList from "../components/UsersList"
 
-export default function Users(){
 
-    return (
-    <div>Users page</div>
-)
+export default function Users() {
+
+  return (
+    <div>
+      <UsersList />
+    </div>
+  )
 }

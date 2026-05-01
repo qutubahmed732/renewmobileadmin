@@ -26,7 +26,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <div className="absolute top-5 right-5">
-            <ThemeBtn />
+            {/* <ThemeBtn /> */}
           </div>
           {children}
         </ThemeProvider>

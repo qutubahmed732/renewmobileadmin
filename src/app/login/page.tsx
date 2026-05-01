@@ -1,13 +1,65 @@
 "use client"
 import Image from 'next/image';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
+ type Login = {
+    email: String,
+    password: String,
+    rememberMe: true,
+    platform: "IOS",
+    deviceId: "string"
+  }
 
 const AdminLogin = () => {
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const router = useRouter();
+
+  async function LoginHandler(e: any) {
+    e.preventDefault();
+
+    const loginData:Login = {
+      email: email,
+      password: password,
+      rememberMe: true,
+      platform: "IOS",
+      deviceId: "string"
+    };
+
+    try {
+      const response = await fetch("/login/api", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(loginData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        console.log("Login Successful:", result);
+
+        const token = result?.data?.accessToken || result?.accessToken || result?.token;
+
+        if (token) {
+          localStorage.setItem("authorized token", token);
+          console.log("Token saved in local storage as 'authorized token'");
+          router.push("/dashboard");
+        } else {
+          console.error("Token not found in response body");
+        }
+      } else {
+        console.error("Login Failed:", result.message);
+      }
+    } catch (error) {
+      console.error("Network Error:", error);
+    }
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center p-6 antialiased transition-colors duration-500 bg-slate-300 dark:bg-[#0a0c10]">
-
-      {/* <div className="absolute top-0 -z-10 h-full w-full bg-pattern"></div> */}
-
 
       <div className="w-full max-w-md">
         <div className="font-inter rounded-2xl p-10 shadow-2xl ring-1 transition-all duration-500 bg-white/50 ring-slate-200 shadow-slate-200 dark:bg-[#111827] dark:ring-white/10 dark:shadow-black">
@@ -33,12 +85,14 @@ const AdminLogin = () => {
             </p>
           </div>
 
-          <form className="mt-10 space-y-5">
+          <form className="mt-10 space-y-5" onSubmit={LoginHandler}>
             <div>
               <label className="mb-2 block text-sm font-semibold tracking-wider text-slate-500 dark:text-slate-400">
                 Email address
               </label>
               <input
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); console.log(email); }}
                 type="email"
                 placeholder="name@company.com"
                 className="w-full rounded-lg border p-3.5 outline-none transition-all focus:ring-2 focus:ring-amber-500/20 bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:border-amber-500 dark:bg-slate-900/50 dark:border-slate-800 dark:text-white dark:placeholder-slate-600 dark:focus:border-amber-500/50"
@@ -55,6 +109,8 @@ const AdminLogin = () => {
                 </a>
               </div>
               <input
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); console.log(password) }}
                 type="password"
                 placeholder="••••••••"
                 className="w-full rounded-lg border p-3.5 outline-none transition-all focus:ring-2 focus:ring-amber-500/20 bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:border-amber-500 dark:bg-slate-900/50 dark:border-slate-800 dark:text-white dark:placeholder-slate-600 dark:focus:border-amber-500/50"
