@@ -14,7 +14,11 @@ import {
   ArrowRight
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import VideoSkeleton from "./video-skeleton"
+import VideoSkeleton from "../../../loading-skeletons/video-skeleton"
+import { getVideosAction } from "@/app/action"
+import { SeriesDetailSheet } from "@/components/SeriesDetailSheet"
+import { redirect } from "next/navigation";
+import EditVideoModal from "../../components/EditModal"
 
 interface VideoItem {
   id: string;
@@ -34,29 +38,46 @@ export default function VideosList() {
   const [data, setData] = useState<VideoItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [selectedSeries, setSelectedSeries] = useState<any>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchVideosData = async () => {
       try {
-        const response = await fetch("/dashboard/videos/api", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("authorized token")}`
-          }
-        });
-        if (!response.ok) throw new Error("Failed to fetch");
-        const result = await response.json();
-        setData(result?.data?.items || []);
-        setLoading(false)
+        const token = localStorage.getItem("authorized token");
+        const result = await getVideosAction(token);
+        
+        if (result.success) {
+          setData(result.data?.data?.items || []);
+          setLoading(false)
+        } else {
+          console.error("Action Error:", result.message);
+        }
       } catch (err) {
         console.error("Fetch error:", err);
-        setLoading(false)
+      } finally {
+        setLoading(false);
       }
     };
-    fetchData();
+    fetchVideosData();
   }, []);
+
+  const handleRowClick = (video: any) => {
+    setSelectedSeries({
+      id: video.id,
+      title: video.title,
+      description: video.description || "No description available",
+      seriesTitle: video.series?.title || "No Series",
+      videoThumbnail: video.thumbnailUrl || "/logo.png"
+    });
+    setIsSheetOpen(true);
+  };
 
   const filteredData = useMemo(() => {
     return data.filter((video) =>
@@ -64,7 +85,6 @@ export default function VideosList() {
     );
   }, [data, search]);
 
-  // Pagination Logic
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = filteredData.slice(startIndex, startIndex + itemsPerPage);
@@ -75,9 +95,14 @@ export default function VideosList() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const handleEditClick = (video: any) => {
+    setSelectedVideo(video); // Isme API se aaya hua single object hoga
+    setIsModalOpen(true);
+  }
+
   return (
     <div className="w-full rounded-2xl border bg-white dark:bg-[#111318] border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
-      
+
       <div className="p-4 md:p-6 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-slate-100 dark:border-slate-800">
         <div className="flex flex-wrap items-center gap-3 sm:gap-4 w-full lg:w-auto">
           <h2 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white whitespace-nowrap">Videos List</h2>
@@ -110,7 +135,7 @@ export default function VideosList() {
         </div>
       </div>
 
-      
+
       <div className="overflow-x-auto scrollbar-thin grow">
         <table className="w-full text-left min-w-250">
           <thead>
@@ -123,7 +148,7 @@ export default function VideosList() {
               <th className="px-6 py-4">Visibility</th>
               <th className="px-6 py-4">Publish Date</th>
               <th className="px-6 py-4 text-center">Views</th>
-              <th className="px-6 py-4 text-right">Action</th>
+              <th className="px-6 py-4">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
@@ -152,7 +177,7 @@ export default function VideosList() {
                           </span>
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <span className="font-semibold text-slate-900 dark:text-slate-200 leading-none mb-1 truncate max-w-50">
+                          <span onClick={() => handleRowClick(video)} className="font-semibold text-slate-900 dark:text-slate-200 leading-none mb-1 truncate max-w-50">
                             {video.title}
                           </span>
                           <span className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 truncate max-w-62.5">
@@ -182,12 +207,12 @@ export default function VideosList() {
                       {video.views ?? 0}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-start gap-2">
                         <Button variant="outline" size="sm" className="text-rose-500 border-rose-200 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-500/10 h-8">
-                          <Trash2 size={14} />
+                          <Trash2 size={14} /> Delete
                         </Button>
-                        <Button variant="outline" size="sm" className="text-slate-500 border-slate-200 dark:border-slate-800 h-8">
-                          <Edit3 size={14} />
+                        <Button onClick={() => handleEditClick(video)} variant="outline" size="sm" className="text-slate-500 border-slate-200 dark:border-slate-800 h-8">
+                          <Edit3 size={14} /> Edit
                         </Button>
                       </div>
                     </td>
@@ -207,7 +232,7 @@ export default function VideosList() {
         <div className="p-4 md:p-6 border-t border-slate-100 dark:border-slate-800 flex justify-center items-center bg-white dark:bg-[#111318]">
           <div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-center">
 
-           
+
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
@@ -235,8 +260,8 @@ export default function VideosList() {
                   key={pageNum}
                   onClick={() => setCurrentPage(pageNum)}
                   className={`w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl border text-sm font-medium transition-all ${currentPage === pageNum
-                      ? "bg-[#eab308] border-[#eab308] text-white shadow-lg shadow-amber-500/20"
-                      : "border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    ? "bg-[#eab308] border-[#eab308] text-white shadow-lg shadow-amber-500/20"
+                    : "border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
                     }`}
                 >
                   {pageNum}
@@ -255,6 +280,18 @@ export default function VideosList() {
           </div>
         </div>
       )}
+
+      <SeriesDetailSheet
+        series={selectedSeries}
+        open={isSheetOpen}
+        setOpen={setIsSheetOpen}
+      />
+
+      <EditVideoModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        videoData={selectedVideo}
+      />
     </div>
   )
 }

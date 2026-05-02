@@ -8,13 +8,16 @@ import { useEffect, useState } from "react";
 
 import UserSignupChart from "./components/ChartCompound";
 import UsersList from "./components/UsersList";
+import { getUsersAction, getVideosAction, getSeriesAction, getSmallGroupsAction } from "@/app/action"
 
 export default function Dashboard() {
 
   const [data, setData] = useState([]);
   const [videos, setVideos] = useState([]);
   const [series, setSeries] = useState([]);
-  const [smallGroup, setSmallGroup] = useState([])
+  const [smallGroup, setSmallGroup] = useState([]);
+  const [loading, setLoading] = useState(true);
+
 
 
   const stats = [
@@ -41,94 +44,53 @@ export default function Dashboard() {
   ];
 
   useEffect(() => {
-
-    // all users
-    const fetchUsersData = async () => {
+    // PARALLEL API CALLS - All 4 requests happen simultaneously
+    const fetchAllData = async () => {
       try {
-        const response = await fetch("/dashboard/api", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("authorized token")}`
-          }
-        });
-        if (!response.ok) throw new Error("Failed to fetch");
+        setLoading(true);
+        const token = localStorage.getItem("authorized token");
 
-        const result = await response.json();
+        // Promise.all makes all 4 calls in parallel instead of sequential
+        const [usersResult, videosResult, seriesResult, smallGroupResult] = await Promise.all([
+          getUsersAction(token),
+          getVideosAction(token),
+          getSeriesAction(token),
+          getSmallGroupsAction(token),
+        ]);
 
-        setData(result?.data?.items || []);
-        
-      } catch (err) {
-        console.error("Fetch error:", err);
-        
-      }
-    };
-    fetchUsersData();
+        // Process results
+        if (usersResult.success) {
+          setData(usersResult.data?.data?.items || []);
+        } else {
+          console.error("Users error:", usersResult.message);
+        }
 
-    // all videos
-    const fetchVideosData = async () => {
-      try {
-        const response = await fetch("/dashboard/videos/api", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("authorized token")}`
-          }
-        });
-        if (!response.ok) throw new Error("Failed to fetch");
+        if (videosResult.success) {
+          setVideos(videosResult.data?.data?.items || []);
+        } else {
+          console.error("Videos error:", videosResult.message);
+        }
 
-        const result = await response.json();
-        setVideos(result?.data?.items || []);
-        
-      } catch (err) {
-        console.error("Fetch error:", err);
-        
-      }
-    };
-    fetchVideosData();
+        if (seriesResult.success) {
+          setSeries(seriesResult.data?.data?.items || []);
+        } else {
+          console.error("Series error:", seriesResult.message);
+        }
 
-    // all series
-    const fetchSeriesData = async () => {
-      try {
-        const response = await fetch("/dashboard/series/api", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("authorized token")}`
-          }
-        });
-        if (!response.ok) throw new Error("Failed to fetch");
-
-        const result = await response.json();
-        setSeries(result?.data?.items);
-        ;
+        if (smallGroupResult.success) {
+          setSmallGroup(smallGroupResult.data?.data?.items || []);
+        } else {
+          console.error("Small Group error:", smallGroupResult.message);
+        }
 
       } catch (err) {
         console.error("Fetch error:", err);
-        
+      } finally {
+        setLoading(false);
       }
     };
-    fetchSeriesData();
 
-    // small group data
-    const fetchSmallGroupData = async () => {
-      try {
-        const response = await fetch("/dashboard/small-group/api", {
-          method: "GET",
-          headers: {
-
-            Authorization: `Bearer ${localStorage.getItem("authorized token")}`
-          }
-        });
-        if (!response.ok) throw new Error("Failed to fetch");
-
-        const result = await response.json();
-        setSmallGroup(result?.data?.items || []);
-        
-      } catch (err) {
-        console.error("Fetch error:", err);
-        
-      }
-    };
-    fetchSmallGroupData();
-
+    fetchAllData();
   }, []);
 
 
@@ -157,7 +119,7 @@ export default function Dashboard() {
 
             <CardContent>
               <div className="text-4xl font-bold tracking-tight">
-                {item.value}
+                {loading ? "..." : item.value}
               </div>
             </CardContent>
           </Card>

@@ -9,8 +9,9 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const jakartaSans = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-jakarta' });
 
 export const metadata: Metadata = {
-  title: "Renew Mobile Admin",
-  description: "Renew Mobile Admin resources for disciples of Jesus...",
+  title: "Login | Renew Mobile Admin",
+  description: "Securely login to your account. Access your dashboard and manage your projects efficiently.",
+  robots: "noindex, nofollow",
 };
 
 export default function RootLayout({
@@ -25,9 +26,6 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
-          <div className="absolute top-5 right-5">
-            {/* <ThemeBtn /> */}
-          </div>
           {children}
         </ThemeProvider>
       </body>

@@ -14,36 +14,44 @@ import {
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import SmallGroupSkeleton from "./small-group-skeleton";
+import SmallGroupSkeleton from "../../../loading-skeletons/small-group-skeleton";
+import { getSmallGroupsAction } from "@/app/action";
+import { SeriesDetailSheet } from "@/components/SeriesDetailSheet";
 
 export default function SmallGroupsTable() {
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [selectedSeries, setSelectedSeries] = useState(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchSmallGroupData = async () => {
       try {
-        const response = await fetch("/dashboard/small-group/api", {
-          method: "GET",
-          headers: {
 
-            Authorization: `Bearer ${localStorage.getItem("authorized token")}`
-          }
-        });
-        if (!response.ok) throw new Error("Failed to fetch");
+        const token = localStorage.getItem("authorized token");
+        const result = await getSmallGroupsAction(token);
 
-        const result = await response.json();
-        setData(result?.data?.items || []);
-        console.log(result?.data?.items);
-        setLoading(false)
+        if (result.success) {
+          setData(result.data?.data?.items || []);
+          setLoading(false)
+        } else {
+          console.error("Action Error:", result.message);
+        }
       } catch (err) {
         console.error("Fetch error:", err);
+      } finally {
         setLoading(false)
       }
     };
-    fetchData();
+    fetchSmallGroupData();
   }, []);
+
+  const handleRowClick = (series: any) => {
+    setSelectedSeries(series);
+    setIsSheetOpen(true);
+  };
 
 
   return (
@@ -101,7 +109,7 @@ export default function SmallGroupsTable() {
                         </div>
                       </div>
                       <div className="flex flex-col gap-1">
-                        <h3 className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-amber-500 transition-colors">
+                        <h3 onClick={() => handleRowClick(item)} className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-amber-500 transition-colors">
                           {item.title}
                         </h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2 max-w-xl">
@@ -193,6 +201,12 @@ export default function SmallGroupsTable() {
           </tbody>
         </table>
       </div>
+
+      <SeriesDetailSheet
+        series={selectedSeries}
+        open={isSheetOpen}
+        setOpen={setIsSheetOpen}
+      />
     </div>
   )
 }

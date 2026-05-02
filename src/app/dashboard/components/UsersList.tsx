@@ -14,38 +14,40 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { useState, useEffect } from "react";
+import { getUsersAction } from "@/app/action"
 
 export default function UsersList() {
   const [searchQuery, setSearchQuery] = useState("")
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Single API call on mount - with caching
   useEffect(() => {
     const fetchUsersData = async () => {
       try {
-        const response = await fetch("/dashboard/api", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("authorized token")}`
-          }
-        });
-        if (!response.ok) throw new Error("Failed to fetch");
+        setLoading(true);
+        const token = localStorage.getItem("authorized token");
+        // Single fetch without pagination
+        const result = await getUsersAction(token);
 
-        const result = await response.json();
-        
-        setData(result?.data?.items || []);
-        setLoading(false)
+        if (result.success) {
+          const items = result.data?.data?.items || [];
+          setData(items);
+        } else {
+          console.error("Action error:", result.message);
+        }
       } catch (err) {
         console.error("Fetch error:", err);
-        setLoading(false)
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchUsersData();
-  }, []);
+  }, []); // Only run once on mount
 
- 
-  const filteredUsers = data.filter((user:any) => {
+
+  const filteredUsers = data.filter((user: any) => {
     const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
     return (
       fullName.includes(searchQuery.toLowerCase()) ||
@@ -60,7 +62,7 @@ export default function UsersList() {
 
   return (
     <div className="w-full rounded-2xl border bg-white dark:bg-[#111318] border-slate-200 dark:border-slate-800 overflow-hidden transition-all duration-300">
-      
+
       <div className="p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 dark:border-slate-800">
         <h2 className="text-xl font-bold text-slate-900 dark:text-white">Users List</h2>
         <div className="flex items-center w-full sm:w-80 rounded-sm border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 overflow-hidden focus-within:ring-2 focus-within:ring-amber-500/50 transition-all">
@@ -84,7 +86,8 @@ export default function UsersList() {
             <tr className="text-slate-400 dark:text-slate-500 text-sm font-medium border-b border-slate-100 dark:border-slate-800">
               <th className="px-6 py-4">User Info</th>
               <th className="px-6 py-4">Contact</th>
-              <th className="px-6 py-4">Role</th>
+              <th className="px-6 py-4">Phone</th>
+              <th className="px-6 py-4">Address</th>
               <th className="px-6 py-4">SignUp Date</th>
               <th className="px-6 py-4">Status</th>
               <th className="px-6 py-4">Action</th>
@@ -92,7 +95,7 @@ export default function UsersList() {
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {filteredUsers.length > 0 ? (
-              filteredUsers.map((user:any) => (
+              filteredUsers.map((user: any) => (
                 <tr key={user.id} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -111,7 +114,7 @@ export default function UsersList() {
                           {user.firstName} {user.lastName}
                         </span>
                         <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
-                          ID: {user.id.slice(0, 8)}...
+                          @{user.email.split('@')[0]}
                         </span>
                       </div>
                     </div>
@@ -122,16 +125,18 @@ export default function UsersList() {
                         <Mail size={14} />
                         <span className="text-sm">{user.email}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
-                        <Phone size={14} />
-                        <span className="text-xs">{user.phone || "No Phone"}</span>
-                      </div>
+
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-xs font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-slate-600 dark:text-slate-400">
-                      {user.role}
-                    </span>
+                    <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
+                      <Phone size={14} /> {user.phone || "N/A"}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500">
+                      {/* <Phone size={14} /> {user.phone || "N/A"} */}
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
                     <div className="flex items-center gap-2">
@@ -146,11 +151,10 @@ export default function UsersList() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
-                      user.status === 'ACTIVE' 
-                      ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' 
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${user.status === 'ACTIVE'
+                      ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
                       : 'bg-rose-500/10 text-rose-600 border-rose-500/20'
-                    }`}>
+                      }`}>
                       {user.status === 'ACTIVE' ? <CheckCircle2 size={12} /> : <Clock size={12} />}
                       {user.status}
                     </span>

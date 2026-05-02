@@ -29,7 +29,7 @@ export default function UserSignupChart({ users = [] }: { users: User[] }) {
     { createdAt: "2026-02-15T10:00:00Z" },
   ];
 
-  const displayUsers = users.length > 0 ? users : mockUsers;
+  // const displayUsers = users.length > 0 ? users : mockUsers;
 
   const chartData = useMemo(() => {
     const monthsMap: Record<string, number> = {};
@@ -43,7 +43,7 @@ export default function UserSignupChart({ users = [] }: { users: User[] }) {
       monthsMap[label] = 0;
     }
 
-    displayUsers.forEach(user => {
+    users.forEach(user => {
       const date = new Date(user.createdAt);
       if (!isNaN(date.getTime())) {
         const label = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
@@ -57,11 +57,11 @@ export default function UserSignupChart({ users = [] }: { users: User[] }) {
       month,
       count
     }));
-  }, [displayUsers]);
+  }, [users]);
 
   return (
     <div className={cn(
-      "w-full h-[400px] p-6 rounded-2xl border transition-all duration-300",
+      "w-full h-100 p-6 rounded-2xl border transition-all duration-300",
       "bg-white border-slate-200",
       "dark:bg-[#111318] dark:border-slate-800"
     )}>

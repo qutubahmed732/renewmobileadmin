@@ -12,10 +12,11 @@ import {
   Layers,
   ArrowUpDown
 } from "lucide-react"
-import { SeriesDetailSheet } from "./SeriesDetailSheet";
+import { SeriesDetailSheet } from "@/components/SeriesDetailSheet";
 import { Button } from "@/components/ui/button";
-import VideoSkeleton from "./video-skeleton";
+import VideoSkeleton from "../../../loading-skeletons/video-skeleton";
 import Image from "next/image";
+import { getSeriesAction } from "@/app/action";
 
 export default function SeriesList() {
   const [search, setSearch] = useState("")
@@ -26,30 +27,32 @@ export default function SeriesList() {
   const [selectedSeries, setSelectedSeries] = useState(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchSeriesData = async () => {
       try {
-        const response = await fetch("/dashboard/series/api", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("authorized token")}`
-          }
-        });
-        if (!response.ok) throw new Error("Failed to fetch");
 
-        const result = await response.json();
-        setData(result?.data?.items);
-        console.log(result?.data?.items);
-        setLoading(false);
+        const token = localStorage.getItem("authorized token");
+        // Fetch all series (no pagination params)
+        const result = await getSeriesAction(token);
 
+        if (result.success) {
+          setData(result.data?.data?.items || []);
+          setLoading(false)
+        } else {
+          console.error("Action Error:", result.message);
+        }
       } catch (err) {
         console.error("Fetch error:", err);
+      } finally {
         setLoading(false)
       }
     };
 
-    fetchData();
-  }, []);
+    fetchSeriesData();
+  }, []); // Fetch once on mount
 
   const handleRowClick = (series: any) => {
     setSelectedSeries(series);
@@ -93,7 +96,7 @@ export default function SeriesList() {
       </div>
 
       <div className="w-full border border-slate-100 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900/50 overflow-hidden">
-        
+
         <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
           <table className="w-full text-left min-w-250 border-collapse">
             <thead>
