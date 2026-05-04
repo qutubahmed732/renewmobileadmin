@@ -1,46 +1,14 @@
 "use server";
 
 const BASE_URL = "https://application.renew.org";
-const FETCH_TIMEOUT = 10000; // 10 seconds
-const MAX_RETRIES = 3;
 
-// Helper function for fetch with timeout and retry
-async function fetchWithTimeoutAndRetry(
-  url: string,
-  options: RequestInit = {},
-  retries = MAX_RETRIES
-): Promise<Response> {
-  for (let attempt = 0; attempt < retries; attempt++) {
-    let timeoutId: NodeJS.Timeout | null = null;
-    try {
-      const controller = new AbortController();
-      timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-
-      const response = await fetch(url, {
-        ...options,
-        signal: controller.signal,
-      });
-
-      if (timeoutId) clearTimeout(timeoutId);
-      return response;
-    } catch (error) {
-      if (timeoutId) clearTimeout(timeoutId);
-      if (attempt === retries - 1) throw error;
-      // Exponential backoff
-      await new Promise((resolve) =>
-        setTimeout(resolve, Math.pow(2, attempt) * 1000)
-      );
-    }
-  }
-  throw new Error("Failed after retries");
-}
 
 // ===========================  FETCH DATA FUNCTIONS START ======================= \\
 
 // admin login function
 export async function loginAction(formData: any) {
   try {
-    const response = await fetchWithTimeoutAndRetry(
+    const response = await fetch(
       `${BASE_URL}/auth/admin/login`,
       {
         method: "POST",
@@ -49,7 +17,7 @@ export async function loginAction(formData: any) {
         },
         body: JSON.stringify(formData),
       }
-    );
+    )
 
     const data = await response.json();
 
@@ -71,8 +39,8 @@ export async function loginAction(formData: any) {
 // users fetching function
 export async function getUsersAction(token: string | null) {
   try {
-    const response = await fetchWithTimeoutAndRetry(
-      `${BASE_URL}/admin/users`,
+    const response = await fetch(
+      `${BASE_URL}/admin/dashboard/stats`,
       {
         method: "GET",
         headers: {
@@ -102,16 +70,16 @@ export async function getUsersAction(token: string | null) {
 // videos fetching function
 export async function getVideosAction(token: string | null) {
   try {
-    const response = await fetchWithTimeoutAndRetry(
-      `${BASE_URL}/admin/videos?sortBy=createdAt&order=ASC`,
+    const response = await 
+      fetch(`${BASE_URL}/admin/videos?sortBy=createdAt&order=DESC`,
       {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
           "Authorization": token ? `Bearer ${token}` : "",
         },
-      }
-    );
+      })
+    
 
     const data = await response.json();
 
@@ -133,8 +101,8 @@ export async function getVideosAction(token: string | null) {
 // series fetching function
 export async function getSeriesAction(token: string | null) {
   try {
-    const response = await fetchWithTimeoutAndRetry(
-      `${BASE_URL}/admin/series?sortBy=createdAt&order=ASC`,
+    const response = await fetch(
+      `${BASE_URL}/admin/series?sortBy=createdAt&order=DESC`,
       {
         method: "GET",
         headers: {
@@ -164,8 +132,8 @@ export async function getSeriesAction(token: string | null) {
 // getsmallgroups fetching function
 export async function getSmallGroupsAction(token: string | null) {
   try {
-    const response = await fetchWithTimeoutAndRetry(
-      `${BASE_URL}/admin/small-groups?sortBy=createdAt&order=ASC`,
+    const response = await fetch(
+      `${BASE_URL}/admin/small-groups?sortBy=createdAt&order=DESC`,
       {
         method: "GET",
         headers: {
@@ -221,13 +189,43 @@ export async function getTeamMembersAction(token: string | null) {
   }
 }
 
+// _______________________________________________________________________________
 // =============================== FETCH DATA FUNCTION END ======================== \\
+// _______________________________________________________________________________
 
-// ---------------------------------- \\
-
-
-// =============================== EDIT DATA FUNCTION START ======================= \\
+// =============================== FORGOT PASSWORD API ====================== \\
 
 
+export async function forgotPasswordAction(email: string) {
+  try {
 
-// =============================== EDIT DATA FUNCTION END ========================= \\
+    const response = await fetch(`${BASE_URL}/auth/admin/forgot-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: result.message || "Something went wrong. Please try again.",
+      };
+    }
+
+    return {
+      success: true,
+      message: "Reset link sent successfully to your email.",
+      data: result,
+    };
+  } catch (error) {
+    console.error("Forgot Password Action Error:", error);
+    return {
+      success: false,
+      message: "Network error. Please check your connection.",
+    };
+  }
+}

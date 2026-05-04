@@ -15,10 +15,9 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import VideoSkeleton from "../../../loading-skeletons/video-skeleton"
-import { getVideosAction } from "@/app/action"
+import { getVideosAction } from "@/app/loadAction"
 import { SeriesDetailSheet } from "@/components/SeriesDetailSheet"
-import { redirect } from "next/navigation";
-import EditVideoModal from "../../components/EditModal"
+import { useRouter } from "next/navigation"
 
 interface VideoItem {
   id: string;
@@ -44,15 +43,17 @@ export default function VideosList() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedVideo, setSelectedVideo] = useState(null);
+  // const [isModalOpen, setIsModalOpen] = useState(false);
+  // const [selectedVideo, setSelectedVideo] = useState(null);
+
+  const router = useRouter()
 
   useEffect(() => {
     const fetchVideosData = async () => {
       try {
         const token = localStorage.getItem("authorized token");
         const result = await getVideosAction(token);
-        
+
         if (result.success) {
           setData(result.data?.data?.items || []);
           setLoading(false)
@@ -69,12 +70,18 @@ export default function VideosList() {
   }, []);
 
   const handleRowClick = (video: any) => {
+    const urlParts = video.vimeoVideoUrl?.split('/') || [];
+    const hash = urlParts[4] || "";
+
     setSelectedSeries({
       id: video.id,
       title: video.title,
       description: video.description || "No description available",
       seriesTitle: video.series?.title || "No Series",
-      videoThumbnail: video.thumbnailUrl || "/logo.png"
+      thumbnailUrl: video.thumbnailUrl || "/logo.png",
+      videoId: video.vimeoVideoId || urlParts[3],
+      videoHash: hash,
+      ...video
     });
     setIsSheetOpen(true);
   };
@@ -96,9 +103,14 @@ export default function VideosList() {
   };
 
   const handleEditClick = (video: any) => {
-    setSelectedVideo(video); // Isme API se aaya hua single object hoga
-    setIsModalOpen(true);
-  }
+    localStorage.setItem("editData", JSON.stringify(video));
+    localStorage.setItem("editType", "videos");
+    router.push(`/dashboard/videos/${video.id}`);
+  };
+
+  // const handleUploadClick = () => {
+  //   router.push(`/dashboard/videos/upload`);
+  // }
 
   return (
     <div className="w-full rounded-2xl border bg-white dark:bg-[#111318] border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
@@ -106,10 +118,10 @@ export default function VideosList() {
       <div className="p-4 md:p-6 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-slate-100 dark:border-slate-800">
         <div className="flex flex-wrap items-center gap-3 sm:gap-4 w-full lg:w-auto">
           <h2 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white whitespace-nowrap">Videos List</h2>
-          <Button variant="outline" className="text-slate-500 border-slate-200 dark:border-slate-800 gap-2 text-[10px] md:text-xs h-8 md:h-9">
+          {/* <Button variant="outline" className="text-slate-500 border-slate-200 dark:border-slate-800 gap-2 text-[10px] md:text-xs h-8 md:h-9">
             <RefreshCw size={14} />
             <span className="hidden sm:inline">Cleanup Stale Uploads</span>
-          </Button>
+          </Button> */}
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
@@ -128,10 +140,10 @@ export default function VideosList() {
               className="w-full bg-transparent px-3 py-2 text-sm outline-none text-slate-900 dark:text-slate-200 placeholder:text-slate-500"
             />
           </div>
-          <Button className="w-full sm:w-auto bg-[#eab308] hover:bg-[#ca8a04] text-white gap-2 px-4 rounded-lg font-medium h-9 md:h-10">
+          {/* <Button onClick={handleUploadClick} className="w-full sm:w-auto bg-[#eab308] hover:bg-[#ca8a04] text-white gap-2 px-4 rounded-lg font-medium h-9 md:h-10">
             <Upload size={18} />
             Upload Video
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -145,7 +157,7 @@ export default function VideosList() {
                 Videos
               </th>
               <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4">Visibility</th>
+              {/* <th className="px-6 py-4">Visibility</th> */}
               <th className="px-6 py-4">Publish Date</th>
               <th className="px-6 py-4 text-center">Views</th>
               <th className="px-6 py-4">Action</th>
@@ -191,12 +203,12 @@ export default function VideosList() {
                         {video.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    {/* <td className="px-6 py-4">
                       <div className="flex items-center gap-1.5 text-emerald-500">
                         <Eye size={16} />
                         <span className="font-medium">{video.visibility}</span>
                       </div>
-                    </td>
+                    </td> */}
                     <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
                       <div className="flex items-center gap-2">
                         <Calendar size={14} />
@@ -285,12 +297,6 @@ export default function VideosList() {
         series={selectedSeries}
         open={isSheetOpen}
         setOpen={setIsSheetOpen}
-      />
-
-      <EditVideoModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        videoData={selectedVideo}
       />
     </div>
   )

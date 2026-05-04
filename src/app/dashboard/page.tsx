@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 
 import UserSignupChart from "./components/ChartCompound";
 import UsersList from "./components/UsersList";
-import { getUsersAction, getVideosAction, getSeriesAction, getSmallGroupsAction } from "@/app/action"
+import { getUsersAction, getVideosAction, getSeriesAction, getSmallGroupsAction } from "@/app/loadAction"
 
 export default function Dashboard() {
 
@@ -61,6 +61,7 @@ export default function Dashboard() {
         // Process results
         if (usersResult.success) {
           setData(usersResult.data?.data?.items || []);
+          console.log(usersResult.data?.data?.items);
         } else {
           console.error("Users error:", usersResult.message);
         }

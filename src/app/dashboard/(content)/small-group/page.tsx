@@ -15,11 +15,12 @@ import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import SmallGroupSkeleton from "../../../loading-skeletons/small-group-skeleton";
-import { getSmallGroupsAction } from "@/app/action";
+import { getSmallGroupsAction } from "@/app/loadAction";
 import { SeriesDetailSheet } from "@/components/SeriesDetailSheet";
+import { useRouter } from "next/navigation";
 
 export default function SmallGroupsTable() {
-
+  const router = useRouter()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -53,6 +54,15 @@ export default function SmallGroupsTable() {
     setIsSheetOpen(true);
   };
 
+  const handleEditClick = (item: any) => {
+  localStorage.setItem("editData", JSON.stringify(item));
+  localStorage.setItem("editType", "small-group");
+  router.push(`/dashboard/small-group/${item.id}`);
+};
+
+  const handleUploadClick = () => {
+    router.push(`/dashboard/videos/upload`);
+  }
 
   return (
     <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111318] shadow-2xl overflow-hidden text-slate-600 dark:text-slate-300 transition-colors">
@@ -71,9 +81,9 @@ export default function SmallGroupsTable() {
           <Button variant="outline" className="border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1a1d24] text-slate-600 dark:text-slate-300 gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
             <ArrowUpDown size={16} /> Sort
           </Button>
-          <Button className="bg-[#eab308] hover:bg-[#ca8a04] text-[#111318] gap-2 font-bold border-none transition-transform active:scale-95 shadow-sm">
+          {/* <Button onClick={handleUploadClick} className="bg-[#eab308] hover:bg-[#ca8a04] text-[#111318] gap-2 font-bold border-none transition-transform active:scale-95 shadow-sm">
             <Plus size={20} /> Create Small Group
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -85,7 +95,7 @@ export default function SmallGroupsTable() {
                 <input type="checkbox" className="rounded border-slate-300 dark:border-slate-700 bg-transparent focus:ring-amber-500/50" />
               </th>
               <th className="px-6 py-4 min-w-75">Small Group Videos</th>
-              <th className="px-6 py-4">Attachment</th>
+              {/* <th className="px-6 py-4">Attachment</th> */}
               <th className="px-6 py-4 text-center">Visibility</th>
               <th className="px-6 py-4 text-center">Publish Date</th>
               <th className="px-6 py-4 text-">Action</th>
@@ -95,83 +105,94 @@ export default function SmallGroupsTable() {
             {loading ? (
               <SmallGroupSkeleton />
             ) : data.length > 0 ? (
-              data.map((item: any) => (
-                <tr key={item.id} className="group hover:bg-slate-50/30 dark:hover:bg-white/2 transition-colors">
-                  <td className="px-6 py-8 align-top">
-                    <input type="checkbox" className="rounded border-slate-300 dark:border-slate-700 bg-transparent mt-1" />
-                  </td>
+              data.map((item: any) => {
+                const dateObj = new Date(item.createdAt);
 
-                  <td className="px-6 py-8">
-                    <div className="flex gap-4">
-                      <div className="w-32 h-20 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0 overflow-hidden relative shadow-sm">
-                        <div className="w-full h-full bg-linear-to-br from-slate-50 to-slate-200 dark:from-slate-700 dark:to-slate-900 flex items-center justify-center">
-                          <Image src={item.thumbnailUrl} alt={item.title} width={50} height={50} className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wider w-full h-full" />
+                const formattedDate = dateObj.toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric'
+                });
+
+                return (
+                  <tr key={item.id} className="group hover:bg-slate-50/30 dark:hover:bg-white/2 transition-colors">
+                    <td className="px-6 py-8 align-top">
+                      <input type="checkbox" className="rounded border-slate-300 dark:border-slate-700 bg-transparent mt-1" />
+                    </td>
+
+                    <td className="px-6 py-6">
+                      <div className="flex gap-4">
+                        <div className="w-32 h-20 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0 overflow-hidden relative shadow-sm">
+                          <div className="w-full h-full bg-linear-to-br from-slate-50 to-slate-200 dark:from-slate-700 dark:to-slate-900 flex items-center justify-center">
+                            <Image src={item.thumbnailUrl} alt={item.title} width={50} height={50} className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wider w-full h-full" />
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <h3 onClick={() => handleRowClick(item)} className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-amber-500 transition-colors">
+                            {item.title}
+                          </h3>
+                          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2 max-w-xl">
+                            {item.description}
+                          </p>
                         </div>
                       </div>
-                      <div className="flex flex-col gap-1">
-                        <h3 onClick={() => handleRowClick(item)} className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-amber-500 transition-colors">
-                          {item.title}
-                        </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2 max-w-xl">
-                          {item.description}
-                        </p>
+                    </td>
+
+                    {/* <td className="px-6 py-8 align-top text-slate-400 dark:text-slate-600 italic text-sm"></td> */}
+
+                    <td className="px-6 py-8 align-top">
+                      <div className="flex items-center justify-center gap-2 text-emerald-600 dark:text-emerald-500 font-semibold text-sm bg-emerald-50 dark:bg-emerald-500/5 py-1 px-3 rounded-full w-fit mx-auto border border-emerald-100 dark:border-emerald-500/10">
+                        <Eye size={14} />
+                        <span>{item.visibility}</span>
                       </div>
-                    </div>
-                  </td>
+                    </td>
 
-                  <td className="px-6 py-8 align-top text-slate-400 dark:text-slate-600 italic text-sm"></td>
+                    <td className="px-6 py-8 align-top">
+                      <div className="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-500 text-sm">
+                        <Calendar size={16} className="text-slate-400 dark:text-slate-600" />
+                        <span>{formattedDate}</span>
+                      </div>
+                    </td>
 
-                  <td className="px-6 py-8 align-top">
-                    <div className="flex items-center justify-center gap-2 text-emerald-600 dark:text-emerald-500 font-semibold text-sm bg-emerald-50 dark:bg-emerald-500/5 py-1 px-3 rounded-full w-fit mx-auto border border-emerald-100 dark:border-emerald-500/10">
-                      <Eye size={14} />
-                      <span>{item.visibility}</span>
-                    </div>
-                  </td>
-
-                  <td className="px-6 py-8 align-top">
-                    <div className="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-500 text-sm">
-                      <Calendar size={16} className="text-slate-400 dark:text-slate-600" />
-                      <span>{item.publishDate}</span>
-                    </div>
-                  </td>
-
-                  <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="px-4 text-xs font-medium rounded-sm border-amber-600/20 bg-amber-600/10 text-amber-600 hover:bg-amber-600/20 gap-2 transition-colors"
-                      >
-                        <Upload size={16} strokeWidth={2.5} />
-                        Upload Episode
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-xs font-medium rounded-sm text-slate-400 hover:text-slate-300 gap-2 transition-all"
-                      >
-                        Batch Upload
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-xs font-medium rounded-sm border-rose-500/15 bg-rose-500/5 text-rose-500 hover:bg-rose-500/10 gap-2 transition-all"
-                      >
-                        <Trash2 size={16} strokeWidth={2.5} />
-                        Delete
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-xs font-medium rounded-sm text-slate-400 hover:text-slate-300 gap-2 transition-all"
-                      >
-                        <Edit3 size={16} strokeWidth={2.5} />
-                        Edit
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="px-4 text-xs font-medium rounded-sm border-amber-600/20 bg-amber-600/10 text-amber-600 hover:bg-amber-600/20 gap-2 transition-colors"
+                        >
+                          <Upload size={16} strokeWidth={2.5} />
+                          Upload Episode
+                        </Button>
+                        {/* <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs font-medium rounded-sm text-slate-400 hover:text-slate-300 gap-2 transition-all"
+                        >
+                          Batch Upload
+                        </Button> */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-xs font-medium rounded-sm border-rose-500/15 bg-rose-500/5 text-rose-500 hover:bg-rose-500/10 gap-2 transition-all"
+                        >
+                          <Trash2 size={16} strokeWidth={2.5} />
+                          Delete
+                        </Button>
+                        <Button
+                          onClick={() => handleEditClick(item)}
+                          variant="outline"
+                          size="sm"
+                          className="text-xs font-medium rounded-sm text-slate-400 hover:text-slate-300 gap-2 transition-all"
+                        >
+                          <Edit3 size={16} strokeWidth={2.5} />
+                          Edit
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })
             ) : (
 
               <tr>

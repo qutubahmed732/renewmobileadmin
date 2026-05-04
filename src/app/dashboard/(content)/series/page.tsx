@@ -16,13 +16,16 @@ import { SeriesDetailSheet } from "@/components/SeriesDetailSheet";
 import { Button } from "@/components/ui/button";
 import VideoSkeleton from "../../../loading-skeletons/video-skeleton";
 import Image from "next/image";
-import { getSeriesAction } from "@/app/action";
+import { getSeriesAction } from "@/app/loadAction";
+import { useRouter } from "next/navigation";
 
 export default function SeriesList() {
+  const router = useRouter()
   const [search, setSearch] = useState("")
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState("");
 
   const [selectedSeries, setSelectedSeries] = useState(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -35,7 +38,6 @@ export default function SeriesList() {
       try {
 
         const token = localStorage.getItem("authorized token");
-        // Fetch all series (no pagination params)
         const result = await getSeriesAction(token);
 
         if (result.success) {
@@ -52,7 +54,12 @@ export default function SeriesList() {
     };
 
     fetchSeriesData();
-  }, []); // Fetch once on mount
+  }, []);
+
+  useEffect(() => {
+    const savedToken = localStorage.getItem("authorized token");
+    if (savedToken) setToken(savedToken);
+  }, []);
 
   const handleRowClick = (series: any) => {
     setSelectedSeries(series);
@@ -63,14 +70,24 @@ export default function SeriesList() {
     s.title.toLowerCase().includes(search.toLowerCase())
   )
 
+  const handleEditClick = (series: any) => {
+  localStorage.setItem("editData", JSON.stringify(series));
+  localStorage.setItem("editType", "series");
+  router.push(`/dashboard/series/${series.id}`);
+};
+
+  const handleCreateClick = () => {
+    router.push(`/dashboard/series/upload`);
+  };
+
   return (
     <div className="w-full rounded-2xl border bg-white dark:bg-[#111318] border-slate-200 dark:border-slate-800 overflow-hidden">
       <div className="p-6 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <h2 className="text-xl font-bold text-slate-900 dark:text-white">Series List</h2>
 
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
-          <div className="flex items-center w-full sm:w-72 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 overflow-hidden focus-within:ring-2 focus-within:ring-amber-500/50 transition-all">
-            <div className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 bg-slate-100/50 dark:bg-slate-800/30">
+          <div className="flex items-center w-full sm:w-72 rounded-lg border ...">
+            <div className="px-3 py-2 ...">
               <Search className="text-slate-400 dark:text-slate-500" size={18} />
             </div>
             <input
@@ -78,19 +95,23 @@ export default function SeriesList() {
               placeholder="Search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-transparent px-3 py-2 text-sm outline-none text-slate-900 dark:text-slate-200"
+              className="w-full bg-transparent px-3 py-2 text-sm outline-none ..."
             />
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Button variant="outline" className="flex-1 sm:flex-none border-slate-200 dark:border-slate-800 gap-2 text-slate-600 dark:text-slate-400">
-              <ArrowUpDown size={16} />
-              Sort
+            <Button type="button" variant="outline" className="...">
+              <ArrowUpDown size={16} /> Sort
             </Button>
-            <Button className="flex-1 sm:flex-none bg-[#eab308] hover:bg-[#ca8a04] text-white gap-2 px-4 rounded-lg font-medium">
+
+            {/* <Button
+              type="button"
+              onClick={handleCreateClick}
+              className="flex-1 sm:flex-none bg-[#eab308] ..."
+            >
               <Plus size={18} />
               Create Series
-            </Button>
+            </Button> */}
           </div>
         </div>
       </div>
@@ -109,7 +130,7 @@ export default function SeriesList() {
                 </th>
                 <th className="px-6 py-4">Visibility</th>
                 <th className="px-6 py-4 text-center">Publish Date</th>
-                <th className="px-6 py-4 text-center">Episodes</th>
+                {/* <th className="px-6 py-4 text-center">Episodes</th> */}
                 <th className="px-6 py-4 text-left">Action</th>
               </tr>
             </thead>
@@ -151,9 +172,9 @@ export default function SeriesList() {
                         {formattedDate}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-center font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    {/* <td className="px-6 py-4 text-center font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
                       {series.episodes}
-                    </td>
+                    </td> */}
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-2">
 
@@ -166,13 +187,13 @@ export default function SeriesList() {
                           Upload Episode
                         </Button>
 
-                        <Button
+                        {/* <Button
                           variant="outline"
                           size="sm"
                           className="text-xs font-medium rounded-sm text-slate-400 hover:text-slate-300 gap-2 transition-all"
                         >
                           Batch Upload
-                        </Button>
+                        </Button> */}
 
                         <Button
                           variant="outline"
@@ -184,6 +205,7 @@ export default function SeriesList() {
                         </Button>
 
                         <Button
+                          onClick={() => handleEditClick(series)}
                           variant="outline"
                           size="sm"
                           className="text-xs font-medium rounded-sm text-slate-400 hover:text-slate-300 gap-2 transition-all"

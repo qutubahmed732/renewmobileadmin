@@ -2,7 +2,8 @@
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { loginAction } from './action';
+import { loginAction } from './loadAction';
+import Link from 'next/link';
 
 type Login = {
   email: String,
@@ -98,9 +99,6 @@ const AdminLogin = () => {
                 <label className="block text-sm font-semibold tracking-wider text-slate-500 dark:text-slate-400">
                   Password
                 </label>
-                <a href="#" className="text-xs font-medium text-amber-500 hover:text-amber-400">
-                  Forgot?
-                </a>
               </div>
               <input
                 value={password}
@@ -109,6 +107,12 @@ const AdminLogin = () => {
                 placeholder="••••••••"
                 className="w-full rounded-lg border p-3.5 outline-none transition-all focus:ring-2 focus:ring-amber-500/20 bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:border-amber-500 dark:bg-slate-900/50 dark:border-slate-800 dark:text-white dark:placeholder-slate-600 dark:focus:border-amber-500/50"
               />
+            </div>
+
+            <div className='flex items-center justify-end'>
+              <Link href="/forgotpassword" className="text-sm font-medium text-amber-500 hover:text-amber-400">
+                Forgot Password?
+              </Link>
             </div>
 
             <button

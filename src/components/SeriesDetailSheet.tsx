@@ -10,21 +10,46 @@ import {
 import { Button } from "@/components/ui/button"
 import { Trash2, CloudUpload, Pencil, FileVideo } from "lucide-react"
 import Image from "next/image"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+import { cn } from "@/lib/utils"
 
 export function SeriesDetailSheet({ series, open, setOpen }: any) {
-  const pathname = usePathname();
-  if (!series) return null;
-  console.log(series.thumbnailUrl);
 
-  const isVideosPage = pathname === "/dashboard/videos";
+  const pathname = usePathname();
+  const router = useRouter();
+
+  if (!series) return null;
+  // console.log(series);
+
+  const getContentType = (): 'videos' | 'series' | 'small-group' => {
+    if (pathname.includes('/videos')) return 'videos';
+    if (pathname.includes('/series')) return 'series';
+    if (pathname.includes('/small-group')) return 'small-group';
+    return 'videos'; // default
+  };
+
+  const handleEditClick = (item: any) => {
+    const type = getContentType();
+
+    // 2. LocalStorage mein data aur type save karo (Jo aapka Edit Form expect kar raha hai)
+    localStorage.setItem("editData", JSON.stringify(item));
+    localStorage.setItem("editType", type);
+
+    // 3. Dynamic route par navigate karo
+    router.push(`/dashboard/${type}/${item.id}`);
+
+    // Sheet band kar do
+    setOpen(false);
+  };
+
+  const isVideosPage = pathname.includes("/videos");
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetContent 
+      <SheetContent
         side="right"
-        className="w-full sm:max-w-full p-0 overflow-y-auto border-l border-slate-200 dark:border-slate-800 transition-all duration-500"
+        className={cn("p-0 overflow-y-auto border-l border-slate-200 dark:border-slate-800 transition-all duration-500", "max-w-xl!")}
       >
         <SheetHeader>
           <VisuallyHidden>
@@ -35,15 +60,27 @@ export function SeriesDetailSheet({ series, open, setOpen }: any) {
           </VisuallyHidden>
         </SheetHeader>
 
-        <div className="relative w-full aspect-video shadow-sm">
-          <Image
-            src={series.thumbnailUrl || "/series-placeholder.png"}
-            alt={series.title}
-            fill
-            loading="lazy" // Lazy load image
-            sizes="(max-width: 768px) 100vw, 40vw"
-            className="object-cover"
-          />
+        <div className="relative w-full aspect-video shadow-sm bg-black overflow-hidden">
+          {isVideosPage && (series.videoId || series.videoHash) ? (
+            <iframe
+              // Yahan humne videoId aur videoHash ko sahi format mein joda hai
+              src={`https://player.vimeo.com/video/${series.videoId}${series.videoHash ? `?h=${series.videoHash}` : ""}`}
+              className="absolute inset-0 w-full h-full"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowFullScreen
+              title={series.title}
+
+            ></iframe>
+          ) : (
+            <Image
+              src={series?.thumbnailUrl || series?.videoThumbnail || "/series-placeholder.png"}
+              alt={series?.title}
+              fill
+              loading="lazy"
+              sizes="(max-width: 768px) 100vw, 40vw"
+              className="object-cover"
+            />
+          )}
         </div>
 
         <div className="p-6 space-y-6">
@@ -81,8 +118,8 @@ export function SeriesDetailSheet({ series, open, setOpen }: any) {
                 <Trash2 size={16} />
                 Delete
               </Button>
-              
-              <Button variant="outline" className="w-full text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 h-10 text-sm font-medium gap-2">
+
+              <Button onClick={() => handleEditClick(series)} variant="outline" className="w-full text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 h-10 text-sm font-medium gap-2">
                 <Pencil size={16} />
                 Edit
               </Button>

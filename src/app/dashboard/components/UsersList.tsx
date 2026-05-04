@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { useState, useEffect } from "react";
-import { getUsersAction } from "@/app/action"
+import { getUsersAction } from "@/app/loadAction"
 
 export default function UsersList() {
   const [searchQuery, setSearchQuery] = useState("")

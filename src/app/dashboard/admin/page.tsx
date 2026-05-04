@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Search, Trash2, LucideDownloadCloud, Loader2, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { getTeamMembersAction } from "@/app/action"
+import { getTeamMembersAction } from "@/app/loadAction"
 
 export default function ManageMember() {
   const [search, setSearch] = useState("")
