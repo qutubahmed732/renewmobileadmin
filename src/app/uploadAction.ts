@@ -125,7 +125,13 @@ export async function completeVideoUploadAction(token: string | null, videoId: s
       },
     });
 
-    const data = await response.json();
+    const text = await response.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      data = { rawText: text }; // Not JSON!
+    }
 
     return {
       success: response.ok,
@@ -136,7 +142,7 @@ export async function completeVideoUploadAction(token: string | null, videoId: s
     return {
       success: false,
       message: "Failed to complete video upload",
-      error: error.message,
+      error: error.message || String(error),
     };
   }
 }

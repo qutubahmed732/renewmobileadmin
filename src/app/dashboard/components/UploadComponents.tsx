@@ -87,8 +87,8 @@ export default function UploadForm({ type, onUpload, onCancel }: Props) {
             alert("Video uploaded and processed successfully!");
             onCancel();
           } else {
-            console.error("Complete Error:", completeRes);
-            alert("Video uploaded to Vimeo but backend failed to finalize. Check console.");
+            console.error("Complete Error Object:", completeRes);
+            alert(`Video uploaded to Vimeo but backend failed to finalize.\n\nDetails: ${JSON.stringify(completeRes, null, 2)}`);
           }
           setLoading(false);
           setUploadProgress(0);
