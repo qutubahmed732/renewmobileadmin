@@ -45,7 +45,7 @@ export async function getUsersAction(token: string | null) {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": token ? `Bearer ${token}` : "",
+          "Authorization": `Bearer ${token}`,
         },
       }
     );

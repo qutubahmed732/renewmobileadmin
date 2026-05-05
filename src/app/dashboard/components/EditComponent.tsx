@@ -20,12 +20,12 @@ export default function EditContentForm() {
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
-  
+
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      setFile(selectedFile); // ✅ important
+      setFile(selectedFile);
       setPreviewUrl(URL.createObjectURL(selectedFile));
     }
     console.log(selectedFile);
@@ -49,7 +49,6 @@ export default function EditContentForm() {
 
 
   console.log(data)
-  console.log(token)
 
   const updateActionWithArgs = data
     ? type === 'videos'
@@ -228,3 +227,65 @@ export default function EditContentForm() {
     </form>
   )
 }
+
+// const handleSubmit = async () => {
+//   if (isLoading) return;
+
+//   const newErrors = {};
+//   if (!formData.title.trim()) newErrors.title = "Title is required";
+//   if (!formData.description.trim()) newErrors.description = "Description is required";
+
+//   if (Object.keys(newErrors).length > 0) {
+//     setError(Object.values(newErrors)[0]);
+//     return;
+//   }
+
+//   try {
+//     setIsLoading(true);
+//     setError("");
+
+//     // Send title/description + optional thumbnail in one PATCH request
+//     const payload = new FormData();
+//     payload.append("title", formData.title.trim());
+//     payload.append("description", formData.description.trim());
+//     if (thumbnailFile) {
+//       // Matches AddVideo upload session field name
+//       payload.append("thumbnail", thumbnailFile);
+//     }
+
+//     await updateVideo(id, payload);
+//     navigate("/videos");
+//   } catch (err) {
+//     setError(err?.response?.data?.message || err?.message || "Failed to update video");
+//     console.error("Update video error:", err);
+//   } finally {
+//     setIsLoading(false);
+//   }
+// };
+
+
+// const handleThumbnailChange = (e) => {
+//     const file = e.target.files?.[0] || null;
+//     if (!file) {
+//       setThumbnailFile(null);
+//       setThumbnailPreview(videoData?.thumbnailUrl || null);
+//       return;
+//     }
+
+//     const maxSizeBytes = 30 * 1024 * 1024; // 30MB
+//     if (!file.type?.startsWith("image/")) {
+//       setError("Thumbnail must be an image file");
+//       e.target.value = "";
+//       return;
+//     }
+//     if (file.size > maxSizeBytes) {
+//       setError("Thumbnail must be under 30MB");
+//       e.target.value = "";
+//       return;
+//     }
+
+//     setError("");
+//     setThumbnailFile(file);
+//     const objectUrl = URL.createObjectURL(file);
+//     setThumbnailPreview(objectUrl);
+//   };

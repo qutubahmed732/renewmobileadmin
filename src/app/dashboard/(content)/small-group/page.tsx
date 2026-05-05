@@ -18,6 +18,7 @@ import SmallGroupSkeleton from "../../../loading-skeletons/small-group-skeleton"
 import { getSmallGroupsAction } from "@/app/loadAction";
 import { SeriesDetailSheet } from "@/components/SeriesDetailSheet";
 import { useRouter } from "next/navigation";
+import { deleteSmallGroupAction } from "@/app/deleteAction";
 
 export default function SmallGroupsTable() {
   const router = useRouter()
@@ -27,11 +28,11 @@ export default function SmallGroupsTable() {
   const [selectedSeries, setSelectedSeries] = useState(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
+  const token = localStorage.getItem("authorized token");
+
   useEffect(() => {
     const fetchSmallGroupData = async () => {
       try {
-
-        const token = localStorage.getItem("authorized token");
         const result = await getSmallGroupsAction(token);
 
         if (result.success) {
@@ -55,13 +56,18 @@ export default function SmallGroupsTable() {
   };
 
   const handleEditClick = (item: any) => {
-  localStorage.setItem("editData", JSON.stringify(item));
-  localStorage.setItem("editType", "small-group");
-  router.push(`/dashboard/small-group/${item.id}`);
-};
+    localStorage.setItem("editData", JSON.stringify(item));
+    localStorage.setItem("editType", "small-group");
+    router.push(`/dashboard/small-group/${item.id}`);
+  };
 
   const handleUploadClick = () => {
     router.push(`/dashboard/videos/upload`);
+  }
+
+  const deleteHandler = async (id: string) => {
+    console.log(id, token)
+    // const res = await deleteSmallGroupAction(id, token)
   }
 
   return (
@@ -172,6 +178,7 @@ export default function SmallGroupsTable() {
                           Batch Upload
                         </Button> */}
                         <Button
+                          onClick={()=> deleteHandler(item.id)}
                           variant="outline"
                           size="sm"
                           className="text-xs font-medium rounded-sm border-rose-500/15 bg-rose-500/5 text-rose-500 hover:bg-rose-500/10 gap-2 transition-all"

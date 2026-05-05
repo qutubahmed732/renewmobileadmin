@@ -18,6 +18,7 @@ import VideoSkeleton from "../../../loading-skeletons/video-skeleton"
 import { getVideosAction } from "@/app/loadAction"
 import { SeriesDetailSheet } from "@/components/SeriesDetailSheet"
 import { useRouter } from "next/navigation"
+import { deleteVideoAction } from "@/app/deleteAction"
 
 interface VideoItem {
   id: string;
@@ -43,15 +44,14 @@ export default function VideosList() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
-  // const [isModalOpen, setIsModalOpen] = useState(false);
-  // const [selectedVideo, setSelectedVideo] = useState(null);
-
   const router = useRouter()
+
+  const token = localStorage.getItem("authorized token");
 
   useEffect(() => {
     const fetchVideosData = async () => {
       try {
-        const token = localStorage.getItem("authorized token");
+
         const result = await getVideosAction(token);
 
         if (result.success) {
@@ -111,6 +111,11 @@ export default function VideosList() {
   // const handleUploadClick = () => {
   //   router.push(`/dashboard/videos/upload`);
   // }
+
+  const deleteHandler = async (id: string) => {
+    console.log(id, token)
+    // const res = await deleteVideoAction(id, token)
+  }
 
   return (
     <div className="w-full rounded-2xl border bg-white dark:bg-[#111318] border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
@@ -220,7 +225,7 @@ export default function VideosList() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-start gap-2">
-                        <Button variant="outline" size="sm" className="text-rose-500 border-rose-200 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-500/10 h-8">
+                        <Button onClick={()=> deleteHandler(video.id)} variant="outline" size="sm" className="text-rose-500 border-rose-200 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-500/10 h-8">
                           <Trash2 size={14} /> Delete
                         </Button>
                         <Button onClick={() => handleEditClick(video)} variant="outline" size="sm" className="text-slate-500 border-slate-200 dark:border-slate-800 h-8">

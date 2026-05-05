@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import VideoSkeleton from "../../../loading-skeletons/video-skeleton";
 import Image from "next/image";
 import { getSeriesAction } from "@/app/loadAction";
+import { deleteSeriesAction } from "@/app/deleteAction";
 import { useRouter } from "next/navigation";
 
 export default function SeriesList() {
@@ -71,14 +72,19 @@ export default function SeriesList() {
   )
 
   const handleEditClick = (series: any) => {
-  localStorage.setItem("editData", JSON.stringify(series));
-  localStorage.setItem("editType", "series");
-  router.push(`/dashboard/series/${series.id}`);
-};
+    localStorage.setItem("editData", JSON.stringify(series));
+    localStorage.setItem("editType", "series");
+    router.push(`/dashboard/series/${series.id}`);
+  };
 
   const handleCreateClick = () => {
     router.push(`/dashboard/series/upload`);
   };
+
+  const deleteHandler = async (id: string) => {
+    console.log(id, token)
+    // const res = await deleteSeriesAction(id, token)
+  }
 
   return (
     <div className="w-full rounded-2xl border bg-white dark:bg-[#111318] border-slate-200 dark:border-slate-800 overflow-hidden">
@@ -105,13 +111,13 @@ export default function SeriesList() {
             </Button>
 
             {/* <Button
-              type="button"
-              onClick={handleCreateClick}
-              className="flex-1 sm:flex-none bg-[#eab308] ..."
-            >
-              <Plus size={18} />
-              Create Series
-            </Button> */}
+                type="button"
+                onClick={handleCreateClick}
+                className="flex-1 sm:flex-none bg-[#eab308] ..."
+              >
+                <Plus size={18} />
+                Create Series
+              </Button> */}
           </div>
         </div>
       </div>
@@ -173,8 +179,8 @@ export default function SeriesList() {
                       </div>
                     </td>
                     {/* <td className="px-6 py-4 text-center font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                      {series.episodes}
-                    </td> */}
+                        {series.episodes}
+                      </td> */}
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-2">
 
@@ -188,14 +194,15 @@ export default function SeriesList() {
                         </Button>
 
                         {/* <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-xs font-medium rounded-sm text-slate-400 hover:text-slate-300 gap-2 transition-all"
-                        >
-                          Batch Upload
-                        </Button> */}
+                            variant="outline"
+                            size="sm"
+                            className="text-xs font-medium rounded-sm text-slate-400 hover:text-slate-300 gap-2 transition-all"
+                          >
+                            Batch Upload
+                          </Button> */}
 
                         <Button
+                          onClick={() => deleteHandler(series?.id)}
                           variant="outline"
                           size="sm"
                           className="text-xs font-medium rounded-sm border-rose-500/15 bg-rose-500/5 text-rose-500 hover:bg-rose-500/10 gap-2 transition-all"
@@ -233,41 +240,41 @@ export default function SeriesList() {
 }
 
 {/* <td className="px-6 py-4">
-  <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2">
 
-    <Button
-      variant="outline"
-      size="sm"
-      className="px-4 text-xs font-medium rounded-sm border-amber-600/20 bg-amber-600/10 text-amber-600 hover:bg-amber-600/20 gap-2 transition-colors"
-    >
-      <Upload size={16} strokeWidth={2.5} />
-      Upload Episode
-    </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        className="px-4 text-xs font-medium rounded-sm border-amber-600/20 bg-amber-600/10 text-amber-600 hover:bg-amber-600/20 gap-2 transition-colors"
+      >
+        <Upload size={16} strokeWidth={2.5} />
+        Upload Episode
+      </Button>
 
-    <Button
-      variant="outline"
-      size="sm"
-      className="text-xs font-medium rounded-sm text-slate-400 hover:text-slate-300 gap-2 transition-all"
-    >
-      Batch Upload
-    </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        className="text-xs font-medium rounded-sm text-slate-400 hover:text-slate-300 gap-2 transition-all"
+      >
+        Batch Upload
+      </Button>
 
-    <Button
-      variant="outline"
-      size="sm"
-      className="text-xs font-medium rounded-sm border-rose-500/15 bg-rose-500/5 text-rose-500 hover:bg-rose-500/10 gap-2 transition-all"
-    >
-      <Trash2 size={16} strokeWidth={2.5} />
-      Delete
-    </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        className="text-xs font-medium rounded-sm border-rose-500/15 bg-rose-500/5 text-rose-500 hover:bg-rose-500/10 gap-2 transition-all"
+      >
+        <Trash2 size={16} strokeWidth={2.5} />
+        Delete
+      </Button>
 
-    <Button
-      variant="outline"
-      size="sm"
-      className="text-xs font-medium rounded-sm text-slate-400 hover:text-slate-300 gap-2 transition-all"
-    >
-      <Edit3 size={16} strokeWidth={2.5} />
-      Edit
-    </Button>
-  </div>
-</td> */}
+      <Button
+        variant="outline"
+        size="sm"
+        className="text-xs font-medium rounded-sm text-slate-400 hover:text-slate-300 gap-2 transition-all"
+      >
+        <Edit3 size={16} strokeWidth={2.5} />
+        Edit
+      </Button>
+    </div>
+  </td> */}
