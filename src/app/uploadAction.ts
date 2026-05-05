@@ -93,7 +93,13 @@ export async function createVideoSessionAction(token: string | null, formData: F
       body: formData,
     });
 
-    const data = await response.json();
+    const text = await response.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      data = { rawText: text }; // Not JSON!
+    }
 
     return {
       success: response.ok,
@@ -104,7 +110,7 @@ export async function createVideoSessionAction(token: string | null, formData: F
     return {
       success: false,
       message: "Failed to create video upload session",
-      error: error.message,
+      error: error.message || String(error),
     };
   }
 }

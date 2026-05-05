@@ -55,8 +55,8 @@ export default function UploadForm({ type, onUpload, onCancel }: Props) {
       const videoId = data?.id || data?.videoId;
 
       if (!sessionRes.success || !uploadUrl || !videoId) {
-        console.error("Session Error:", sessionRes);
-        alert("Failed to initialize video upload session. Please check console.");
+        console.error("Session Error Object:", sessionRes);
+        alert(`Failed to initialize video upload session.\n\nDetails: ${JSON.stringify(sessionRes, null, 2)}`);
         setLoading(false);
         return;
       }
