@@ -33,7 +33,9 @@ export default function DashboardClientWrapper({ children }: { children: React.R
       "/dashboard/admin": "Admin",
       "/dashboard/videos": "Videos Content",
       "/dashboard/series": "Series Content",
-      "/dashboard/small-groups": "Small Groups"
+      "/dashboard/small-groups": "Small Groups",
+      "/dashboard/upload": "Upload",
+      "/dashboard/profile": "Profile"
     }
     setHeading(routes[pathname] || "Dashboard")
   }, [pathname])

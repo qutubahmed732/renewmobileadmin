@@ -155,12 +155,12 @@ export default function EditContentForm() {
               </div>
             )}
 
-            {type === 'videos' && (
+            {/* {type === 'videos' && (
               <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-400 ml-1">Vimeo Video URL</label>
-                <input name="vimeoVideoUrl" type="text" defaultValue={data?.vimeoVideoUrl || ""} className="w-full bg-slate-50 dark:bg-[#1a1d24] border border-slate-200 dark:border-slate-800 rounded-xl py-3 px-4 outline-none" />
+                <input name="vimeoVideoUrl" type="text"  className="w-full bg-slate-50 dark:bg-[#1a1d24] border border-slate-200 dark:border-slate-800 rounded-xl py-3 px-4 outline-none" />
               </div>
-            )}
+            )} */}
 
             <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-bold text-slate-700 dark:text-slate-400 ml-1">{ui?.descLabel}</label>

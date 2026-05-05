@@ -5,7 +5,7 @@ export default function Users() {
 
   return (
     <div>
-      <UsersList />
+      <UsersList role={"MOBILE_USER"} />
     </div>
   )
 }

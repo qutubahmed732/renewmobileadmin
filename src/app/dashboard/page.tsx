@@ -8,40 +8,12 @@ import { useEffect, useState } from "react";
 
 import UserSignupChart from "./components/ChartCompound";
 import UsersList from "./components/UsersList";
-import { getUsersAction, getVideosAction, getSeriesAction, getSmallGroupsAction } from "@/app/loadAction"
+import { getDashboardStatsAction } from "@/app/loadAction"
 
 export default function Dashboard() {
 
-  const [data, setData] = useState([]);
-  const [videos, setVideos] = useState([]);
-  const [series, setSeries] = useState([]);
-  const [smallGroup, setSmallGroup] = useState([]);
   const [loading, setLoading] = useState(true);
-
-
-
-  const stats = [
-    {
-      title: "Total Users",
-      value: data?.length || "...",
-      icon: <Info size={16} className="text-slate-500" />,
-    },
-    {
-      title: "Total Videos",
-      value: videos?.length || "...",
-      icon: <Info size={16} className="text-slate-500" />,
-    },
-    {
-      title: "Total Series",
-      value: series?.length || "...",
-      icon: <Info size={16} className="text-slate-500" />,
-    },
-    {
-      title: "Total Small Group",
-      value: smallGroup?.length || "...",
-      icon: <Info size={16} className="text-slate-500" />,
-    },
-  ];
+  const [chartStats, setChartStats] = useState<any>([])
 
   useEffect(() => {
     // PARALLEL API CALLS - All 4 requests happen simultaneously
@@ -50,38 +22,14 @@ export default function Dashboard() {
         setLoading(true);
         const token = localStorage.getItem("authorized token");
 
-        // Promise.all makes all 4 calls in parallel instead of sequential
-        const [usersResult, videosResult, seriesResult, smallGroupResult] = await Promise.all([
-          getUsersAction(token),
-          getVideosAction(token),
-          getSeriesAction(token),
-          getSmallGroupsAction(token),
+        const [dashboardStatesResult] = await Promise.all([
+          getDashboardStatsAction(token)
         ]);
 
-        // Process results
-        if (usersResult.success) {
-          setData(usersResult.data?.data?.items || []);
-          console.log(usersResult.data?.data?.items);
+        if (dashboardStatesResult.success) {
+          setChartStats(dashboardStatesResult.data)
         } else {
-          console.error("Users error:", usersResult.message);
-        }
-
-        if (videosResult.success) {
-          setVideos(videosResult.data?.data?.items || []);
-        } else {
-          console.error("Videos error:", videosResult.message);
-        }
-
-        if (seriesResult.success) {
-          setSeries(seriesResult.data?.data?.items || []);
-        } else {
-          console.error("Series error:", seriesResult.message);
-        }
-
-        if (smallGroupResult.success) {
-          setSmallGroup(smallGroupResult.data?.data?.items || []);
-        } else {
-          console.error("Small Group error:", smallGroupResult.message);
+          console.error("Users error:", dashboardStatesResult?.message);
         }
 
       } catch (err) {
@@ -94,6 +42,28 @@ export default function Dashboard() {
     fetchAllData();
   }, []);
 
+  const stats = [
+    {
+      title: "Total Users",
+      value: chartStats?.data?.totals?.users || "...",
+      icon: <Info size={16} className="text-slate-500" />,
+    },
+    {
+      title: "Total Videos",
+      value: chartStats?.data?.totals?.videos || "...",
+      icon: <Info size={16} className="text-slate-500" />,
+    },
+    {
+      title: "Total Series",
+      value: chartStats?.data?.totals?.series || "...",
+      icon: <Info size={16} className="text-slate-500" />,
+    },
+    {
+      title: "Total Small Group",
+      value: chartStats?.data?.totals?.groups || "...",
+      icon: <Info size={16} className="text-slate-500" />,
+    },
+  ];
 
   return (
     <section className="flex flex-col gap-6">
@@ -127,8 +97,8 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <UserSignupChart users={data} />
-      <UsersList />
+      <UserSignupChart monthlyData={chartStats?.data?.signups?.monthly} />
+      <UsersList role={"SUPER_ADMIN"} />
 
     </section>
   )

@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { loginAction } from './loadAction';
+import { verifyMfaLoginAction } from './MFAactions';
 import Link from 'next/link';
 
 type Login = {
@@ -16,6 +17,9 @@ type Login = {
 const AdminLogin = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [mfaToken, setMfaToken] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   async function LoginHandler(e: any) {
@@ -30,26 +34,65 @@ const AdminLogin = () => {
     };
 
     try {
-
+      setLoading(true);
       const result = await loginAction(loginData);
 
       if (result) {
-        console.log("Login Successful:", result);
+        console.log("Login Result:", result);
 
-        const token = result?.data?.data?.accessToken
+        const responseData = result.data?.data || result.data;
+
+        // Check if MFA is required
+        if (result.status === 403 || result.status === 401 || responseData?.mfaRequired || responseData?.mfaToken || responseData?.challengeToken || responseData?.challengeId || responseData?.factorId) {
+          console.log("MFA Challenge required:", responseData);
+          setMfaToken(responseData?.challengeToken || responseData?.mfaToken || responseData?.challengeId || responseData?.factorId || "dummy_token");
+          return;
+        }
+
+        const token = responseData?.accessToken;
 
         if (token) {
           localStorage.setItem("authorized token", token);
           console.log("Token saved in local storage as 'authorized token'");
           router.push("/dashboard");
         } else {
-          console.error("Token not found in response body");
+          console.error("Token not found in response body", result);
+          alert(`Login succeeded but no token found. Response: ${JSON.stringify(responseData)}`);
         }
       } else {
         console.error("Login Failed:", result);
       }
     } catch (error) {
       console.error("Network Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function VerifyMfaHandler(e: any) {
+    e.preventDefault();
+    if (!mfaToken || !mfaCode) return;
+
+    try {
+      setLoading(true);
+      const result = await verifyMfaLoginAction(mfaCode, mfaToken);
+
+      if (result?.success) {
+        const token = result?.data?.data?.accessToken;
+        if (token) {
+          localStorage.setItem("authorized token", token);
+          router.push("/dashboard");
+        } else {
+          console.error("Final Token not found in MFA verify response");
+        }
+      } else {
+        console.error("MFA Verification Failed:", result);
+        alert(`Verification Failed: ${result?.data?.message || result?.message || "Invalid MFA Code. Please try again."}`);
+      }
+    } catch (error) {
+      console.error("MFA Network Error:", error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -76,11 +119,42 @@ const AdminLogin = () => {
               Admin Login
             </h2>
             <p className="mt-2 text-sm text-slate-400 font-inter">
-              Enter your credentials to access the panel.
+              {mfaToken ? "Enter your 6-digit authenticator code." : "Enter your credentials to access the panel."}
             </p>
           </div>
 
-          <form className="mt-10 space-y-5" onSubmit={LoginHandler}>
+          {mfaToken ? (
+            <form className="mt-10 space-y-5" onSubmit={VerifyMfaHandler}>
+              <div>
+                <label className="mb-2 block text-sm font-semibold tracking-wider text-slate-500 dark:text-slate-400">
+                  Authenticator Code
+                </label>
+                <input
+                  value={mfaCode}
+                  onChange={(e) => setMfaCode(e.target.value)}
+                  type="text"
+                  maxLength={6}
+                  placeholder="123456"
+                  className="w-full rounded-lg border p-3.5 outline-none transition-all text-center tracking-[0.5em] text-2xl font-mono focus:ring-2 focus:ring-amber-500/20 bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:border-amber-500 dark:bg-slate-900/50 dark:border-slate-800 dark:text-white dark:placeholder-slate-600 dark:focus:border-amber-500/50"
+                />
+              </div>
+
+              <div className='flex items-center justify-between mt-2'>
+                <button type="button" onClick={() => setMfaToken(null)} className="text-sm font-medium text-slate-500 hover:text-slate-400">
+                  Back to login
+                </button>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || mfaCode.length < 6}
+                className="mt-4 w-full rounded-lg bg-amber-500 py-3.5 md:text-lg font-bold tracking-wide text-black transition-all hover:bg-amber-400 hover:shadow-lg active:scale-[0.98] cursor-pointer disabled:opacity-70"
+              >
+                {loading ? "Verifying..." : "Verify Code"}
+              </button>
+            </form>
+          ) : (
+            <form className="mt-10 space-y-5" onSubmit={LoginHandler}>
             <div>
               <label className="mb-2 block text-sm font-semibold tracking-wider text-slate-500 dark:text-slate-400">
                 Email address
@@ -117,11 +191,13 @@ const AdminLogin = () => {
 
             <button
               type="submit"
-              className="mt-4 w-full rounded-lg bg-amber-500 py-3.5 md:text-lg font-bold tracking-wide text-black transition-all hover:bg-amber-400 hover:shadow-lg active:scale-[0.98] cursor-pointer"
+              disabled={loading}
+              className="mt-4 w-full rounded-lg bg-amber-500 py-3.5 md:text-lg font-bold tracking-wide text-black transition-all hover:bg-amber-400 hover:shadow-lg active:scale-[0.98] cursor-pointer disabled:opacity-70"
             >
-              Sign in to Dashboard
+              {loading ? "Signing in..." : "Sign in to Dashboard"}
             </button>
           </form>
+          )}
         </div>
       </div>
     </div>

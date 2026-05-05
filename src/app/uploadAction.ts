@@ -1,31 +1,10 @@
-"use server"
-
-import { revalidatePath } from "next/cache"
-import { redirect } from "next/navigation"
+"use server";
 
 const BASE_URL = "https://application.renew.org";
 
-export async function createContentAction(
-  type: string,
-  prevState: any,
-  formData: FormData
-) {
-  let endpoint = "";
-  switch (type) {
-    case "videos": endpoint = "/admin/videos"; break;
-    case "series": endpoint = "/admin/series"; break;
-    case "small-group": endpoint = "/admin/small-groups"; break;
-    default: return { error: "Invalid content type", success: false };
-  }
-
+export async function uploadVideoAction(token: string | null, formData: FormData) {
   try {
-    const token = "YOUR_AUTH_TOKEN";
-
-    if (type === "small-group" && !formData.get("createdById")) {
-        formData.append("createdById", "your-admin-id-here"); 
-    }
-
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
+    const response = await fetch(`${BASE_URL}/admin/videos`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -33,20 +12,70 @@ export async function createContentAction(
       body: formData,
     });
 
-    const result = await response.json();
+    const data = await response.json();
 
-    if (!response.ok) {
-      return { 
-        error: result.message || `Failed to create ${type}`, 
-        success: false 
-      };
-    }
-
-    revalidatePath(`/dashboard/${type}`);
-    
-  } catch (error) {
-    return { error: "Network error occurred", success: false };
+    return {
+      success: response.ok,
+      status: response.status,
+      data: data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: "Video upload failed",
+      error: error.message,
+    };
   }
+}
 
-  redirect(`/dashboard/${type}`);
+export async function uploadSeriesAction(token: string | null, formData: FormData) {
+  try {
+    const response = await fetch(`${BASE_URL}/admin/series`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    return {
+      success: response.ok,
+      status: response.status,
+      data: data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: "Series upload failed",
+      error: error.message,
+    };
+  }
+}
+
+export async function uploadSmallGroupAction(token: string | null, formData: FormData) {
+  try {
+    const response = await fetch(`${BASE_URL}/admin/small-groups`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    return {
+      success: response.ok,
+      status: response.status,
+      data: data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: "Small Group upload failed",
+      error: error.message,
+    };
+  }
 }

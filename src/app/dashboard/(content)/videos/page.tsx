@@ -193,7 +193,7 @@ export default function VideosList() {
                             {formatDuration(video.duration)}
                           </span>
                         </div>
-                        <div className="flex flex-col min-w-0">
+                        <div className="flex flex-col min-w-0 cursor-pointer">
                           <span onClick={() => handleRowClick(video)} className="font-semibold text-slate-900 dark:text-slate-200 leading-none mb-1 truncate max-w-50">
                             {video.title}
                           </span>

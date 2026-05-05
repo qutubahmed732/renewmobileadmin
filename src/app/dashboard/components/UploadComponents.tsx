@@ -1,52 +1,164 @@
-// components/UploadComponent.tsx
-"use client"
-import { useActionState } from "react";
-import { createContentAction } from "@/app/uploadAction";
-import { useState, useEffect } from "react";
+"use client";
 
-export default function UploadComponent({ type }: { type: string }) {
-  const boundAction = createContentAction.bind(null, type);
-  const [state, formAction, isPending] = useActionState(boundAction, null);
-  const [token, setToken] = useState("");
+import { useState, useRef } from "react";
+import { Upload, FileVideo, Layers, Users, CheckCircle, Calendar } from "lucide-react";
 
-  useEffect(() => {
-  setToken(localStorage.getItem("authorized token") || "");
-}, []);
+interface Props {
+  type: "video" | "series" | "small-group" | "gathering";
+  onUpload: (token: string, formData: FormData) => Promise<any>;
+  onCancel: () => void; // New prop for back button logic
+}
+
+export default function UploadForm({ type, onUpload, onCancel }: Props) {
+  const [loading, setLoading] = useState(false);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const config = {
+    video: { title: "Video", color: "text-blue-500", bg: "bg-blue-500/10", icon: <FileVideo size={20} />, btn: "Upload" },
+    series: { title: "Series", color: "text-purple-500", bg: "bg-purple-500/10", icon: <Layers size={20} />, btn: "Create" },
+    "small-group": { title: "Small Group", color: "text-emerald-500", bg: "bg-emerald-500/10", icon: <Users size={20} />, btn: "Create" },
+    "gathering": { title: "Gathering", color: "text-amber-500", bg: "bg-amber-500/10", icon: <Calendar size={20} />, btn: "Schedule" },
+  };
+
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (loading) return;
+    setLoading(true);
+
+    const token = localStorage.getItem("authorized token");
+    const formData = new FormData(formRef.current!);
+    
+    if (coverFile) formData.append("coverImage", coverFile);
+    if (mediaFile) formData.append("videoFile", mediaFile);
+
+    const res = await onUpload(token!, formData);
+    if (res.success) {
+      alert(`${type} processed successfully!`);
+      onCancel();
+    } else {
+      alert("Error: " + res.message);
+    }
+    setLoading(false);
+  };
 
   return (
-    <form action={formAction} className="space-y-4 bg-white p-6 rounded-xl border">
-      <div>
-        <label className="block text-sm font-medium mb-1 capitalize">{type} Title</label>
-        <input name="title" className="w-full border p-2 rounded" placeholder="Enter title..." required />
+<div className="w-full max-w-4xl mx-auto bg-white dark:bg-[#0f1115] border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-700 ease-out">
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-slate-50/50 dark:bg-white/5">
+        <div className={`p-2 rounded-lg ${config[type].bg} ${config[type].color}`}>
+          {config[type].icon}
+        </div>
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+          {type === "video" ? "Add Video Details" : `Create ${config[type].title}`}
+        </h2>
       </div>
-      <input type="hidden" name="token" value={token} />
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Description</label>
-        <textarea name="description" className="w-full border p-2 rounded" rows={4} />
-      </div>
+      <form ref={formRef} onSubmit={handleUpload} className="p-6 space-y-6">
+        {/* Title & Type Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{config[type].title} Title</label>
+            <input
+              name="title"
+              required
+              className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-amber-500 outline-none transition-all"
+              placeholder={`Enter ${type} title here...`}
+            />
+          </div>
 
-      {/* Conditional UI based on Type (Jaisa aapki images mein hai) */}
-      {type === 'videos' && (
-        <div className="p-4 bg-slate-50 rounded-lg border-dashed border-2">
-           <p className="text-center text-sm text-slate-500">Video Upload Section</p>
-           {/* Image_a8aa0f.png wala logic yahan aayega */}
+          {/* {type === "video" && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Select Content Type</label>
+              <select name="contentType" className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 outline-none">
+                <option value="sermon">Sermon</option>
+                <option value="event">Event</option>
+              </select>
+            </div>
+          )} */}
+        </div>
+
+        {/* Description */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{config[type].title} Description</label>
+          <textarea
+            name="description"
+            rows={4}
+            className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-amber-500 outline-none resize-none transition-all"
+            placeholder={`Enter ${type} description here...`}
+          />
+        </div>
+
+        {/* Upload Zones */}
+        <div className="grid gap-6">
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              {type === "video" ? "Video Cover Image" : "Thumbnail (Cover Image)"}
+            </label>
+            <UploadZone 
+              file={coverFile} 
+              setFile={setCoverFile} 
+              label="Click to upload image (max 30MB)"
+              accept="image/*"
+            />
+          </div>
+
+          {type === "video" && (
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Video Upload</label>
+              <UploadZone 
+                file={mediaFile} 
+                setFile={setMediaFile} 
+                label="Click to upload video file" 
+                accept="video/*"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <button 
+            type="button" 
+            onClick={onCancel}
+            className="px-6 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-lg transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-8 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-lg shadow-sm disabled:opacity-50 transition-all"
+          >
+            {loading ? "Processing..." : config[type].btn}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function UploadZone({ file, setFile, label, accept }: any) {
+  return (
+    <div className="relative group border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl p-8 flex flex-col items-center justify-center bg-yellow-50/20 dark:bg-yellow-500/5 hover:bg-yellow-50/40 transition-all">
+      <input 
+        type="file" 
+        accept={accept}
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        onChange={(e) => setFile(e.target.files?.[0] || null)}
+      />
+      {file ? (
+        <div className="flex items-center gap-2 text-emerald-600 font-medium">
+          <CheckCircle size={20} />
+          <span className="truncate max-w-xs">{file.name}</span>
+        </div>
+      ) : (
+        <div className="text-center">
+          <Upload className="mx-auto text-yellow-600 mb-2" size={24} />
+          <p className="text-xs text-slate-500">{label}</p>
         </div>
       )}
-
-      {type === 'series' && (
-        <div>
-           <p className="text-sm text-slate-500 italic">Episodes will be added after series creation.</p>
-           {/* Image_a8a91d.png wala logic */}
-        </div>
-      )}
-
-      <div className="flex justify-end gap-3 pt-4">
-        <button type="button" className="px-4 py-2 border rounded">Cancel</button>
-        <button type="submit" disabled={isPending} className="bg-amber-500 text-white px-4 py-2 rounded">
-          {isPending ? "Creating..." : "Create"}
-        </button>
-      </div>
-    </form>
+    </div>
   );
 }

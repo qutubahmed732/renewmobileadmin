@@ -37,10 +37,10 @@ export async function loginAction(formData: any) {
 }
 
 // users fetching function
-export async function getUsersAction(token: string | null) {
+export async function getUsersAction(token: string | null, page: number = 1, limit: number = 10, role:string) {
   try {
     const response = await fetch(
-      `${BASE_URL}/admin/dashboard/stats`,
+      `${BASE_URL}/admin/users?page=${page}&limit=${limit}&order=DESC&role=${role}`,
       {
         method: "GET",
         headers: {
@@ -67,19 +67,49 @@ export async function getUsersAction(token: string | null) {
   }
 }
 
-// videos fetching function
-export async function getVideosAction(token: string | null) {
+export async function getDashboardStatsAction(token: string | null) {
   try {
-    const response = await 
-      fetch(`${BASE_URL}/admin/videos?sortBy=createdAt&order=DESC`,
+    const response = await fetch(
+      `${BASE_URL}/admin/dashboard/stats`,
       {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": token ? `Bearer ${token}` : "",
+          "Authorization": `Bearer ${token}`,
         },
-      })
-    
+      }
+    );
+
+    const data = await response.json();
+
+    return {
+      success: response.ok,
+      status: response.status,
+      data: data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      status: 500,
+      message: "Internal Server Error",
+      error: error,
+    }
+  }
+}
+
+// videos fetching function
+export async function getVideosAction(token: string | null) {
+  try {
+    const response = await
+      fetch(`${BASE_URL}/admin/videos?sortBy=createdAt&order=DESC`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": token ? `Bearer ${token}` : "",
+          },
+        })
+
 
     const data = await response.json();
 

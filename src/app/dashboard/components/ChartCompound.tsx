@@ -12,52 +12,26 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 
-interface User {
-  createdAt: string;
+interface MonthlyDataItem {
+  month: string;
+  count: number;
 }
 
-export default function UserSignupChart({ users = [] }: { users: User[] }) {
-
-  const mockUsers = [
-    { createdAt: "2026-03-10T10:00:00Z" },
-    { createdAt: "2026-03-15T10:00:00Z" },
-    { createdAt: "2026-03-25T10:00:00Z" },
-    { createdAt: "2026-04-05T10:00:00Z" },
-    { createdAt: "2026-04-12T10:00:00Z" },
-    { createdAt: "2026-04-28T10:00:00Z" },
-    { createdAt: "2026-04-29T10:00:00Z" },
-    { createdAt: "2026-02-15T10:00:00Z" },
-  ];
-
-  // const displayUsers = users.length > 0 ? users : mockUsers;
+export default function UserSignupChart({ 
+  monthlyData 
+}: { 
+  monthlyData?: MonthlyDataItem[] 
+}) {
 
   const chartData = useMemo(() => {
-    const monthsMap: Record<string, number> = {};
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-    const today = new Date();
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      const label = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-      monthsMap[label] = 0;
+    // Agar backend se data aa raha hai toh wahi use karo
+    if (monthlyData && Array.isArray(monthlyData)) {
+      return monthlyData;
     }
 
-    users.forEach(user => {
-      const date = new Date(user.createdAt);
-      if (!isNaN(date.getTime())) {
-        const label = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
-        if (monthsMap[label] !== undefined) {
-          monthsMap[label]++;
-        }
-      }
-    });
-
-    return Object.entries(monthsMap).map(([month, count]) => ({
-      month,
-      count
-    }));
-  }, [users]);
+    // Agar data loading par hai ya nahi mila toh khali array bhej do
+    return [];
+  }, [monthlyData]);
 
   return (
     <div className={cn(
