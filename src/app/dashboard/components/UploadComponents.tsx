@@ -2,6 +2,8 @@
 
 import { useState, useRef } from "react";
 import { Upload, FileVideo, Layers, Users, CheckCircle, Calendar } from "lucide-react";
+import * as tus from "tus-js-client";
+import { createVideoSessionAction, completeVideoUploadAction } from "../../uploadAction";
 
 interface Props {
   type: "video" | "series" | "small-group" | "gathering";
@@ -15,6 +17,8 @@ export default function UploadForm({ type, onUpload, onCancel }: Props) {
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   const config = {
     video: { title: "Video", color: "text-blue-500", bg: "bg-blue-500/10", icon: <FileVideo size={20} />, btn: "Upload" },
     series: { title: "Series", color: "text-purple-500", bg: "bg-purple-500/10", icon: <Layers size={20} />, btn: "Create" },
@@ -26,10 +30,77 @@ export default function UploadForm({ type, onUpload, onCancel }: Props) {
     e.preventDefault();
     if (loading) return;
     setLoading(true);
+    setUploadProgress(0);
 
     const token = localStorage.getItem("authorized token");
-    const formData = new FormData(formRef.current!);
     
+    // --- VIDEO UPLOAD (TUS Direct) ---
+    if (type === "video") {
+      if (!mediaFile) {
+        alert("Please select a video file!");
+        setLoading(false);
+        return;
+      }
+
+      // Phase 1: Create Session
+      const sessionData = new FormData(formRef.current!);
+      sessionData.append("sourceFileName", mediaFile.name);
+      sessionData.append("sourceFileSize", String(mediaFile.size));
+      if (coverFile) sessionData.append("thumbnail", coverFile);
+
+      const sessionRes = await createVideoSessionAction(token!, sessionData);
+      const data = sessionRes.data?.data || sessionRes.data;
+      
+      const uploadUrl = data?.uploadUrl || data?.upload_link;
+      const videoId = data?.id || data?.videoId;
+
+      if (!sessionRes.success || !uploadUrl || !videoId) {
+        console.error("Session Error:", sessionRes);
+        alert("Failed to initialize video upload session. Please check console.");
+        setLoading(false);
+        return;
+      }
+
+      // Phase 2: TUS Direct Upload
+      const upload = new tus.Upload(mediaFile, {
+        uploadUrl: uploadUrl,
+        retryDelays: [0, 3000, 5000, 10000, 20000],
+        metadata: {
+          filename: mediaFile.name,
+          filetype: mediaFile.type,
+        },
+        onError: function (error) {
+          console.error("TUS Upload failed:", error);
+          alert("Video upload failed: " + error.message);
+          setLoading(false);
+          setUploadProgress(0);
+        },
+        onProgress: function (bytesUploaded, bytesTotal) {
+          const percentage = ((bytesUploaded / bytesTotal) * 100).toFixed(0);
+          setUploadProgress(Number(percentage));
+        },
+        onSuccess: async function () {
+          // Phase 3: Complete Upload
+          setUploadProgress(100);
+          const completeRes = await completeVideoUploadAction(token!, videoId);
+          if (completeRes.success) {
+            alert("Video uploaded and processed successfully!");
+            onCancel();
+          } else {
+            console.error("Complete Error:", completeRes);
+            alert("Video uploaded to Vimeo but backend failed to finalize. Check console.");
+          }
+          setLoading(false);
+          setUploadProgress(0);
+        },
+      });
+
+      upload.start();
+      return; // Exit here, let TUS onSuccess handle the rest
+    }
+
+    // --- STANDARD UPLOAD (Series & Small Groups) ---
+    const formData = new FormData(formRef.current!);
     if (coverFile) formData.append("coverImage", coverFile);
     if (mediaFile) formData.append("videoFile", mediaFile);
 
@@ -117,22 +188,41 @@ export default function UploadForm({ type, onUpload, onCancel }: Props) {
           )}
         </div>
 
-        {/* Footer */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-          <button 
-            type="button" 
-            onClick={onCancel}
-            className="px-6 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-lg transition-all"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-8 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-lg shadow-sm disabled:opacity-50 transition-all"
-          >
-            {loading ? "Processing..." : config[type].btn}
-          </button>
+        {/* Footer with Progress Bar */}
+        <div className="flex flex-col gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+          
+          {loading && type === "video" && uploadProgress > 0 && (
+            <div className="w-full">
+              <div className="flex justify-between text-xs text-slate-500 mb-1">
+                <span>Uploading Video directly to Vimeo...</span>
+                <span className="font-bold text-amber-600">{uploadProgress}%</span>
+              </div>
+              <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                <div 
+                  className="bg-amber-500 h-2.5 rounded-full transition-all duration-300 ease-out" 
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3">
+            <button 
+              type="button" 
+              onClick={onCancel}
+              disabled={loading}
+              className="px-6 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 border border-slate-200 rounded-lg transition-all disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-8 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-lg shadow-sm disabled:opacity-50 transition-all flex items-center justify-center min-w-[120px]"
+            >
+              {loading && type === "video" ? "Uploading..." : loading ? "Processing..." : config[type].btn}
+            </button>
+          </div>
         </div>
       </form>
     </div>
