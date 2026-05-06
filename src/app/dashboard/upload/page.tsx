@@ -13,7 +13,7 @@ export default function UploadPage() {
   const options = [
     { id: "video", label: "Video", icon: <FileVideo size={32} />, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-500/10", delay: "delay-75", action: uploadVideoAction },
     { id: "series", label: "Series", icon: <Layers size={32} />, color: "text-purple-500", bg: "bg-purple-50 dark:bg-purple-500/10", delay: "delay-150", action: uploadSeriesAction },
-    { id: "small-group", label: "Group", icon: <Users size={32} />, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-500/10", delay: "delay-200", action: uploadSmallGroupAction },
+    { id: "small-group", label: "Small Groups", icon: <Users size={32} />, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-500/10", delay: "delay-200", action: uploadSmallGroupAction },
     { id: "gathering", label: "Gathering", icon: <Calendar size={32} />, color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-500/10", delay: "delay-300", action: null },
   ] as const;
 

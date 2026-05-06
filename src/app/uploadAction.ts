@@ -38,12 +38,14 @@ export async function uploadSeriesAction(token: string | null, formData: FormDat
       body: formData,
     });
 
-    const data = await response.json();
+    const text = await response.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = { rawText: text }; }
 
     return {
       success: response.ok,
       status: response.status,
-      data: data,
+      data,
     };
   } catch (error: any) {
     return {
@@ -64,12 +66,14 @@ export async function uploadSmallGroupAction(token: string | null, formData: For
       body: formData,
     });
 
-    const data = await response.json();
+    const text = await response.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = { rawText: text }; }
 
     return {
       success: response.ok,
       status: response.status,
-      data: data,
+      data,
     };
   } catch (error: any) {
     return {
