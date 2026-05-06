@@ -2,7 +2,6 @@
 
 import {
   Search,
-  Plus,
   Trash2,
   Edit3,
   Eye,
@@ -32,11 +31,10 @@ export default function SmallGroupsTable() {
   const [selectedSeries, setSelectedSeries] = useState(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  const token = localStorage.getItem("authorized token");
-
   useEffect(() => {
     const fetchSmallGroupData = async () => {
       try {
+        const token = localStorage.getItem("authorized token");
         const result = await getSmallGroupsAction(token);
 
         if (result.success) {
@@ -65,11 +63,8 @@ export default function SmallGroupsTable() {
     router.push(`/dashboard/small-group/${item.id}`);
   };
 
-  const handleUploadClick = () => {
-    router.push(`/dashboard/videos/upload`);
-  }
-
   const deleteHandler = async (id: string) => {
+    const token = localStorage.getItem("authorized token");
     if (!token) return;
     const ok = await confirm({
       title: "Delete Small Group",
@@ -182,6 +177,7 @@ export default function SmallGroupsTable() {
                         <Button
                           variant="outline"
                           size="sm"
+                          onClick={() => router.push(`/dashboard/small-group/${item.id}/upload-episode?title=${encodeURIComponent(item.title)}`)}
                           className="px-4 text-xs font-medium rounded-sm border-amber-600/20 bg-amber-600/10 text-amber-600 hover:bg-amber-600/20 gap-2 transition-colors"
                         >
                           <Upload size={16} strokeWidth={2.5} />

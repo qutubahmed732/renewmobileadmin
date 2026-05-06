@@ -1,15 +1,13 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import {
   Search,
-  Plus,
   Trash2,
   Edit3,
   Eye,
   Calendar,
   Upload,
-  Layers,
   ArrowUpDown
 } from "lucide-react"
 import { SeriesDetailSheet } from "@/components/SeriesDetailSheet";
@@ -35,8 +33,6 @@ export default function SeriesList() {
   const [selectedSeries, setSelectedSeries] = useState(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
 
   useEffect(() => {
     const fetchSeriesData = async () => {
@@ -79,10 +75,6 @@ export default function SeriesList() {
     localStorage.setItem("editData", JSON.stringify(series));
     localStorage.setItem("editType", "series");
     router.push(`/dashboard/series/${series.id}`);
-  };
-
-  const handleCreateClick = () => {
-    router.push(`/dashboard/series/upload`);
   };
 
   const deleteHandler = async (id: string) => {
@@ -204,6 +196,7 @@ export default function SeriesList() {
                         <Button
                           variant="outline"
                           size="sm"
+                          onClick={() => router.push(`/dashboard/series/${series.id}/upload-episode?title=${encodeURIComponent(series.title)}`)}
                           className="px-4 text-xs font-medium rounded-sm border-amber-600/20 bg-amber-600/10 text-amber-600 hover:bg-amber-600/20 gap-2 transition-colors"
                         >
                           <Upload size={16} strokeWidth={2.5} />
@@ -252,6 +245,7 @@ export default function SeriesList() {
         open={isSheetOpen}
         setOpen={setIsSheetOpen}
       />
+
     </div>
   )
 }

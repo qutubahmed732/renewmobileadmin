@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import UploadForm from "../components/UploadComponents";
+import GatheringForm from "../components/GatheringForm";
 import { uploadVideoAction, uploadSeriesAction, uploadSmallGroupAction } from "../../uploadAction";
 import { FileVideo, Layers, Users, Calendar, ArrowLeft } from "lucide-react";
 
@@ -18,7 +19,6 @@ export default function UploadPage() {
   ] as const;
 
   const handleSelection = (id: ActiveTab) => {
-    if (id === "gathering") return;
     setActiveTab(id);
   };
 
@@ -61,12 +61,16 @@ export default function UploadPage() {
       </div>
 
       <div className="pt-2">
-        <UploadForm
-          key={activeTab}
-          type={activeTab as any}
-          onUpload={currentOption?.action as any}
-          onCancel={() => setActiveTab(null)}
-        />
+        {activeTab === "gathering" ? (
+          <GatheringForm onCancel={() => setActiveTab(null)} />
+        ) : (
+          <UploadForm
+            key={activeTab}
+            type={activeTab as any}
+            onUpload={currentOption?.action as any}
+            onCancel={() => setActiveTab(null)}
+          />
+        )}
       </div>
     </div>
   );

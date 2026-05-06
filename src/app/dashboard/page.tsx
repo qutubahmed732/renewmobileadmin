@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 
 
 import UserSignupChart from "./components/ChartCompound";
-import UsersList from "./components/UsersList";
 import { getDashboardStatsAction } from "@/app/loadAction"
 
 export default function Dashboard() {
@@ -98,7 +97,6 @@ export default function Dashboard() {
       </div>
 
       <UserSignupChart monthlyData={chartStats?.data?.signups?.monthly} />
-      <UsersList role={"SUPER_ADMIN"} />
 
     </section>
   )

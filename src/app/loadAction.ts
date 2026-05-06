@@ -86,6 +86,7 @@ export async function getDashboardStatsAction(token: string | null) {
       success: response.ok,
       status: response.status,
       data: data,
+      message: response.ok ? undefined : (data?.message ?? `Request failed with status ${response.status}`),
     };
   } catch (error: any) {
     return {

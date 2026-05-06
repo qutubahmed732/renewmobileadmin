@@ -44,15 +44,19 @@ export default function VideosList() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
+  const [token, setToken] = useState<string | null>(null);
   const itemsPerPage = 8;
 
   const router = useRouter()
   const { toast } = useToast()
   const confirm = useConfirm()
 
-  const token = localStorage.getItem("authorized token");
+  useEffect(() => {
+    setToken(localStorage.getItem("authorized token"));
+  }, []);
 
   useEffect(() => {
+    if (token === null) return;
     const fetchVideosData = async () => {
       try {
 
@@ -71,7 +75,7 @@ export default function VideosList() {
       }
     };
     fetchVideosData();
-  }, []);
+  }, [token]);
 
   const handleRowClick = (video: any) => {
     const urlParts = video.vimeoVideoUrl?.split('/') || [];

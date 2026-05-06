@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { LayoutDashboard, Users, Video, Layers, Users2, Settings, ChevronDown, Menu, Clapperboard, Upload, UserCircle2 } from "lucide-react"
+import { LayoutDashboard, Users, Video, Layers, Users2, Settings, Clapperboard, Upload, UserCircle2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   Accordion,
@@ -48,24 +48,31 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
           </div>
         </Link>
 
+        <Link
+          href="/dashboard/upload"
+          className="flex items-center justify-center gap-2 w-full py-2.5 px-4 mb-4 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-semibold text-sm rounded-xl transition-all shadow-sm"
+        >
+          <Upload size={16} strokeWidth={2.5} />
+          Upload Content
+        </Link>
+
         <nav className="space-y-2">
           <NavItem icon={<LayoutDashboard size={20} />} link="/dashboard" label="Dashboard" active={pathname === "/dashboard"} />
           <NavItem icon={<Users size={20} />} label="Users" link="/dashboard/users" active={pathname === "/dashboard/users"} />
 
-
           <Accordion type="single" collapsible className="w-full border-none">
             <AccordionItem value="content" className={cn(
-              "border-none rounded-xl px-2 transition-colors",
+              "border-none rounded-xl transition-colors",
               "bg-slate-100 dark:bg-slate-800/40"
             )}>
-              <AccordionTrigger className="hover:no-underline py-3 px-2 focus:ring-0">
+              <AccordionTrigger className="hover:no-underline py-2 px-3 focus:ring-0 items-center">
                 <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
                   <Clapperboard size={22} className="text-slate-400" />
                   <span className="text-base font-medium">Content</span>
                 </div>
               </AccordionTrigger>
 
-              <AccordionContent className="pt-0">
+              <AccordionContent className="pt-0 pb-2">
                 <div className={cn(
                   "relative space-y-1 border-l-2 mt-2",
                   "border-slate-300 dark:border-slate-700/50"
@@ -73,7 +80,6 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
                   <NavItem icon={<Video size={18} />} link="/dashboard/videos" label="Videos" />
                   <NavItem icon={<Layers size={18} />} link="/dashboard/series" label="Series" />
                   <NavItem icon={<Users2 size={18} />} link="/dashboard/small-group" label="Small Group" />
-                  <NavItem icon={<Upload size={20} />} link="/dashboard/upload" label="Upload" />
                 </div>
               </AccordionContent>
             </AccordionItem>

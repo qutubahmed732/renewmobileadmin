@@ -171,6 +171,46 @@ export async function cancelVideoUploadAction(token: string | null, videoId: str
   }
 }
 
+export async function createSeriesEpisodeSessionAction(
+  token: string | null,
+  seriesId: string,
+  formData: FormData
+) {
+  try {
+    const response = await fetch(`${BASE_URL}/admin/series/${seriesId}/video-upload-sessions`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${token}` },
+      body: formData,
+    });
+    const text = await response.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = { rawText: text }; }
+    return { success: response.ok, status: response.status, data };
+  } catch (error: any) {
+    return { success: false, message: "Failed to create episode upload session", error: error.message || String(error) };
+  }
+}
+
+export async function createSmallGroupEpisodeSessionAction(
+  token: string | null,
+  groupId: string,
+  formData: FormData
+) {
+  try {
+    const response = await fetch(`${BASE_URL}/admin/small-groups/${groupId}/video-upload-sessions`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${token}` },
+      body: formData,
+    });
+    const text = await response.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = { rawText: text }; }
+    return { success: response.ok, status: response.status, data };
+  } catch (error: any) {
+    return { success: false, message: "Failed to create small group episode upload session", error: error.message || String(error) };
+  }
+}
+
 export async function getVideoUploadStatusAction(token: string | null, videoId: string | number) {
   try {
     const response = await fetch(`${BASE_URL}/admin/videos/${videoId}/upload-status`, {
