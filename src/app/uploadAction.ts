@@ -134,7 +134,7 @@ export async function completeVideoUploadAction(token: string | null, videoId: s
     try {
       data = JSON.parse(text);
     } catch (e) {
-      data = { rawText: text }; // Not JSON!
+      data = { rawText: text };
     }
 
     return {
@@ -148,5 +148,44 @@ export async function completeVideoUploadAction(token: string | null, videoId: s
       message: "Failed to complete video upload",
       error: error.message || String(error),
     };
+  }
+}
+
+export async function cancelVideoUploadAction(token: string | null, videoId: string | number) {
+  try {
+    const response = await fetch(`${BASE_URL}/admin/videos/${videoId}/cancel-upload`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const text = await response.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = { rawText: text }; }
+
+    return { success: response.ok, status: response.status, data };
+  } catch (error: any) {
+    return { success: false, error: error.message || String(error) };
+  }
+}
+
+export async function getVideoUploadStatusAction(token: string | null, videoId: string | number) {
+  try {
+    const response = await fetch(`${BASE_URL}/admin/videos/${videoId}/upload-status`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    const text = await response.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = { rawText: text }; }
+
+    return { success: response.ok, status: response.status, data };
+  } catch (error: any) {
+    return { success: false, error: error.message || String(error) };
   }
 }
