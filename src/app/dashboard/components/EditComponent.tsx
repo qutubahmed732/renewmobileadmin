@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect, useActionState } from 'react'
 import Image from 'next/image'
-import { ArrowLeft, Video, Layers, Users, Upload, Package, CheckCircle2, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Video, Layers, Users, Upload, Package } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import Link from 'next/link'
 import { updateSeriesAction, updateSmallGroupAction, updateVideoAction } from '@/app/editaction'
+import { useToast } from '@/components/ui/toast'
 
 type ContentType = 'videos' | 'series' | 'small-group';
 
@@ -15,8 +16,9 @@ export default function EditContentForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isLoaded, setIsLoaded] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [token, setToken] = useState("")
+
+  const { toast } = useToast();
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -66,16 +68,11 @@ export default function EditContentForm() {
     null
   );
 
-  // Success aur Error handling logic
   useEffect(() => {
     if (state?.success) {
-      console.log("✅ Success:", state.message || "Updated successfully");
-      setShowSuccess(true);
-      // 3 second baad success message hatane ke liye
-      const timer = setTimeout(() => setShowSuccess(false), 3000);
-      return () => clearTimeout(timer);
+      toast({ type: 'success', title: 'Updated successfully!', message: 'Your changes have been saved.' });
     } else if (state?.error) {
-      console.error("❌ Error:", state.error);
+      toast({ type: 'error', title: 'Update Failed', message: state.error });
     }
   }, [state]);
 
@@ -91,30 +88,7 @@ export default function EditContentForm() {
   return (
     <form action={formAction} className="min-h-screen bg-white dark:bg-[#0a0b0e] p-4 md:p-10 text-slate-900 dark:text-slate-200">
 
-      {/* Floating Notifications */}
-      <div className="fixed top-5 right-5 z-50 space-y-3 max-w-sm w-full transition-all">
-        {showSuccess && (
-          <div className="flex items-center gap-3 bg-emerald-500 text-white p-4 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
-            <CheckCircle2 size={24} />
-            <div>
-              <p className="font-bold">Updated Success!</p>
-              <p className="text-xs opacity-90">Your changes have been saved.</p>
-            </div>
-          </div>
-        )}
-
-        {state?.error && (
-          <div className="flex items-center gap-3 bg-rose-500 text-white p-4 rounded-2xl shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
-            <AlertCircle size={24} />
-            <div>
-              <p className="font-bold">Update Failed</p>
-              <p className="text-xs opacity-90">{state.error}</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="max-w-5xl mx-auto">
+<div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8 border-b border-slate-100 dark:border-slate-800 pb-6">
           <div className="flex items-center gap-4">

@@ -19,6 +19,7 @@ import { getVideosAction } from "@/app/loadAction"
 import { SeriesDetailSheet } from "@/components/SeriesDetailSheet"
 import { useRouter } from "next/navigation"
 import { deleteVideoAction } from "@/app/deleteAction"
+import { useToast } from "@/components/ui/toast"
 
 interface VideoItem {
   id: string;
@@ -45,6 +46,7 @@ export default function VideosList() {
   const itemsPerPage = 8;
 
   const router = useRouter()
+  const { toast } = useToast()
 
   const token = localStorage.getItem("authorized token");
 
@@ -114,13 +116,14 @@ export default function VideosList() {
 
   const deleteHandler = async (id: string) => {
     if (!token) return;
-    if (!confirm("Are you sure you want to delete this video?")) return;
+    if (!window.confirm("Are you sure you want to delete this video?")) return;
 
     const res = await deleteVideoAction(id, token);
     if (res.success) {
       setData((prev) => prev.filter((video) => video.id !== id));
+      toast({ type: 'success', title: 'Video deleted', message: 'The video has been removed.' });
     } else {
-      alert(res.error || "Failed to delete video");
+      toast({ type: 'error', title: 'Delete failed', message: res.error });
     }
   };
 

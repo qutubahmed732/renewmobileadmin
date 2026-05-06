@@ -19,9 +19,11 @@ import Image from "next/image";
 import { getSeriesAction } from "@/app/loadAction";
 import { deleteSeriesAction } from "@/app/deleteAction";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/toast";
 
 export default function SeriesList() {
   const router = useRouter()
+  const { toast } = useToast();
   const [search, setSearch] = useState("")
 
   const [data, setData] = useState([]);
@@ -82,8 +84,15 @@ export default function SeriesList() {
   };
 
   const deleteHandler = async (id: string) => {
-    console.log(id, token)
-    // const res = await deleteSeriesAction(id, token)
+    if (!token) return;
+    if (!window.confirm("Are you sure you want to delete this series?")) return;
+    const res = await deleteSeriesAction(id, token);
+    if (res.success) {
+      setData((prev: any) => prev.filter((s: any) => s.id !== id));
+      toast({ type: 'success', title: 'Series deleted', message: 'The series has been removed.' });
+    } else {
+      toast({ type: 'error', title: 'Delete failed', message: res.error });
+    }
   }
 
   return (

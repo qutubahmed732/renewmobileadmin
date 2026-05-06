@@ -19,9 +19,11 @@ import { getSmallGroupsAction } from "@/app/loadAction";
 import { SeriesDetailSheet } from "@/components/SeriesDetailSheet";
 import { useRouter } from "next/navigation";
 import { deleteSmallGroupAction } from "@/app/deleteAction";
+import { useToast } from "@/components/ui/toast";
 
 export default function SmallGroupsTable() {
   const router = useRouter()
+  const { toast } = useToast();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -66,8 +68,15 @@ export default function SmallGroupsTable() {
   }
 
   const deleteHandler = async (id: string) => {
-    console.log(id, token)
-    // const res = await deleteSmallGroupAction(id, token)
+    if (!token) return;
+    if (!window.confirm("Are you sure you want to delete this small group?")) return;
+    const res = await deleteSmallGroupAction(id, token as string);
+    if (res.success) {
+      setData((prev: any) => prev.filter((item: any) => item.id !== id));
+      toast({ type: 'success', title: 'Small group deleted', message: 'The group has been removed.' });
+    } else {
+      toast({ type: 'error', title: 'Delete failed', message: res.error });
+    }
   }
 
   return (
