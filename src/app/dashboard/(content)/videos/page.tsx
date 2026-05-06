@@ -178,11 +178,13 @@ export default function VideosList() {
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
             {!loading ? (
               currentItems.map((video) => {
-                const formattedDate = new Date(video.publishedAt).toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: '2-digit',
-                  year: 'numeric'
-                });
+                const formattedDate = video.publishedAt
+                  ? new Date(video.publishedAt).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: '2-digit',
+                      year: 'numeric'
+                    })
+                  : 'Pending';
 
                 return (
                   <tr key={video.id} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
