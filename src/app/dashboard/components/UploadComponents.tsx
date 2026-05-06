@@ -131,22 +131,19 @@ export default function UploadForm({ type, onUpload, onCancel }: Props) {
         return;
       }
 
-      // Unwrap nested data (backend may return { data: { id, uploadUrl } })
-      const sessionPayload = sessionRes.data?.data ?? sessionRes.data;
-      const uploadUrl: string | undefined =
-        sessionPayload?.uploadUrl ||
-        sessionPayload?.upload_link ||
-        sessionPayload?.tusUploadUrl;
-      const videoId: string | undefined =
-        sessionPayload?.id ||
-        sessionPayload?.videoId;
+      // Response shape: sessionRes.data.data = { video: { id }, upload: { uploadLink } }
+      const innerData = sessionRes.data?.data;
+      const uploadUrl: string | undefined = innerData?.upload?.uploadLink;
+      const videoId: string | undefined = innerData?.video?.id;
+
+      console.log("[Upload] Phase 1 done — videoId:", videoId, "uploadUrl:", !!uploadUrl);
 
       if (!uploadUrl || !videoId) {
         console.error("[Upload] Session response missing uploadUrl or id:", sessionPayload);
         toast({
           type: "error",
           title: "Session response invalid",
-          message: `Backend did not return an upload URL or video ID. Got: ${JSON.stringify(sessionPayload)}`,
+          message: `Backend did not return an upload URL or video ID. Got: ${JSON.stringify(innerData)}`,
         });
         setLoading(false);
         setPhase("error");
@@ -154,7 +151,6 @@ export default function UploadForm({ type, onUpload, onCancel }: Props) {
       }
 
       videoIdRef.current = videoId;
-      console.log("[Upload] Phase 1 done — videoId:", videoId, "uploadUrl:", uploadUrl);
 
       // ── Phase 2: TUS Direct Upload ───────────────────────────────────────
       setPhase("uploading");
