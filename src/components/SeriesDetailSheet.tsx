@@ -5,7 +5,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetDescription, // Add this
+  SheetDescription,
 } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Trash2, CloudUpload, Pencil, FileVideo } from "lucide-react"
@@ -14,36 +14,34 @@ import { usePathname, useRouter } from "next/navigation"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import { cn } from "@/lib/utils"
 
-export function SeriesDetailSheet({ series, open, setOpen }: any) {
+export function SeriesDetailSheet({ series, open, setOpen, onDelete }: any) {
 
   const pathname = usePathname();
   const router = useRouter();
 
   if (!series) return null;
-  // console.log(series);
 
   const getContentType = (): 'videos' | 'series' | 'small-group' => {
     if (pathname.includes('/videos')) return 'videos';
     if (pathname.includes('/series')) return 'series';
     if (pathname.includes('/small-group')) return 'small-group';
-    return 'videos'; // default
+    return 'videos';
   };
 
   const handleEditClick = (item: any) => {
     const type = getContentType();
-
-    // 2. LocalStorage mein data aur type save karo (Jo aapka Edit Form expect kar raha hai)
     localStorage.setItem("editData", JSON.stringify(item));
     localStorage.setItem("editType", type);
-
-    // 3. Dynamic route par navigate karo
     router.push(`/dashboard/${type}/${item.id}`);
-
-    // Sheet band kar do
     setOpen(false);
   };
 
   const isVideosPage = pathname.includes("/videos");
+
+  const handleDelete = () => {
+    setOpen(false);
+    onDelete?.(series.id);
+  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -102,19 +100,21 @@ export function SeriesDetailSheet({ series, open, setOpen }: any) {
 
           <div className="flex flex-col gap-3 pt-4">
             {!isVideosPage && (
-              <>
-                <Button className="w-full bg-amber-500 hover:bg-amber-600 text-white h-11 shadow-sm gap-2 font-semibold">
-                  <CloudUpload size={18} />
-                  Upload Episode
-                </Button>
-                <Button variant="outline" className="w-full text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 h-10 text-sm font-medium">
-                  Batch Upload
-                </Button>
-              </>
+              <Button
+                onClick={() => {
+                  const type = getContentType();
+                  router.push(`/dashboard/${type}/${series.id}/upload-episode?title=${encodeURIComponent(series.title)}`);
+                  setOpen(false);
+                }}
+                className="w-full bg-amber-500 hover:bg-amber-600 text-white h-11 shadow-sm gap-2 font-semibold"
+              >
+                <CloudUpload size={18} />
+                Upload Episode
+              </Button>
             )}
 
             <div className={isVideosPage ? "flex flex-col gap-3" : "grid grid-cols-2 gap-3"}>
-              <Button variant="outline" className="w-full text-rose-500 border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 h-10 text-sm font-medium gap-2">
+              <Button onClick={handleDelete} variant="outline" className="w-full text-rose-500 border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/30 h-10 text-sm font-medium gap-2">
                 <Trash2 size={16} />
                 Delete
               </Button>

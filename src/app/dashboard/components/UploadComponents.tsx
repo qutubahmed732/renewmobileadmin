@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import Image from "next/image";
-import { Upload, FileVideo, Layers, Users, Calendar, X, CheckCircle2, Loader2 } from "lucide-react";
+import { Upload, FileVideo, Layers, Users, Calendar, X, CheckCircle2, Loader2, AlertTriangle } from "lucide-react";
 import * as tus from "tus-js-client";
 import {
   createVideoSessionAction,
@@ -139,7 +139,7 @@ export default function UploadForm({ type, onUpload, onCancel }: Props) {
       console.log("[Upload] Phase 1 done — videoId:", videoId, "uploadUrl:", !!uploadUrl);
 
       if (!uploadUrl || !videoId) {
-        console.error("[Upload] Session response missing uploadUrl or id:", sessionPayload);
+        console.error("[Upload] Session response missing uploadUrl or id:", innerData);
         toast({
           type: "error",
           title: "Session response invalid",
@@ -297,6 +297,13 @@ export default function UploadForm({ type, onUpload, onCancel }: Props) {
   const isVideoUploading = type === "video" && loading;
   const phaseStep = { "creating-session": 1, uploading: 2, finalizing: 3, done: 3, error: 0, idle: 0 }[phase] ?? 0;
 
+  useEffect(() => {
+    if (!isVideoUploading) return;
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isVideoUploading]);
+
   return (
     <div className="w-full max-w-4xl mx-auto bg-white dark:bg-[#0f1115] border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-700 ease-out">
       {/* Header */}
@@ -370,6 +377,25 @@ export default function UploadForm({ type, onUpload, onCancel }: Props) {
             </div>
           )}
         </div>
+
+        {/* ── Video Upload Disclaimer ────────────────────────────────────────── */}
+        {type === "video" && (
+          isVideoUploading ? (
+            <div className="flex items-start gap-3 rounded-xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/10 px-4 py-3">
+              <AlertTriangle size={18} className="text-rose-500 shrink-0 mt-0.5" />
+              <p className="text-sm text-rose-700 dark:text-rose-400 font-medium leading-snug">
+                Upload in progress — <span className="font-bold">do not close or navigate away</span> or your upload will be lost.
+              </p>
+            </div>
+          ) : (
+            <div className="flex items-start gap-3 rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-4 py-3">
+              <AlertTriangle size={18} className="text-amber-500 shrink-0 mt-0.5" />
+              <p className="text-sm text-amber-700 dark:text-amber-400 leading-snug">
+                Once the upload starts, <span className="font-semibold">keep this page open</span> until it completes. Closing or navigating away will cancel the upload and all progress will be lost.
+              </p>
+            </div>
+          )
+        )}
 
         {/* ── Video Upload Progress ──────────────────────────────────────────── */}
         {isVideoUploading && phase !== "idle" && (

@@ -37,10 +37,37 @@ export async function loginAction(formData: any) {
 }
 
 // users fetching function
-export async function getUsersAction(token: string | null, page: number = 1, limit: number = 10, role:string) {
+export async function searchUserByEmailAction(token: string | null, email: string) {
   try {
     const response = await fetch(
-      `${BASE_URL}/admin/users?page=${page}&limit=${limit}&order=DESC&role=${role}`,
+      `${BASE_URL}/admin/users?page=1&limit=5&search=${encodeURIComponent(email)}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      }
+    );
+    const data = await response.json();
+    return { success: response.ok, data };
+  } catch {
+    return { success: false, data: null };
+  }
+}
+
+export async function getUsersAction(token: string | null, page: number = 1, limit: number = 10, role: string, search?: string) {
+  try {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+      order: "DESC",
+      role,
+    });
+    if (search?.trim()) params.set("search", search.trim());
+
+    const response = await fetch(
+      `${BASE_URL}/admin/users?${params.toString()}`,
       {
         method: "GET",
         headers: {
@@ -258,5 +285,21 @@ export async function forgotPasswordAction(email: string) {
       success: false,
       message: "Network error. Please check your connection.",
     };
+  }
+}
+export async function resetPasswordAction(oobCode: string, newPassword: string) {
+  try {
+    const response = await fetch(`${BASE_URL}/auth/admin/reset-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ oobCode, newPassword }),
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      return { success: false, message: result.message || "Failed to reset password. The link may be expired." };
+    }
+    return { success: true, message: "Password reset successfully." };
+  } catch (error) {
+    return { success: false, message: "Network error. Please try again." };
   }
 }

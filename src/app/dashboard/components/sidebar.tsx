@@ -79,7 +79,7 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
                 )}>
                   <NavItem icon={<Video size={18} />} link="/dashboard/videos" label="Videos" />
                   <NavItem icon={<Layers size={18} />} link="/dashboard/series" label="Series" />
-                  <NavItem icon={<Users2 size={18} />} link="/dashboard/small-group" label="Small Group" />
+                  <NavItem icon={<Users2 size={18} />} link="/dashboard/small-group" label="Small Groups" />
                 </div>
               </AccordionContent>
             </AccordionItem>

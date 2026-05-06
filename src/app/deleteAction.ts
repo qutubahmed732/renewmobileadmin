@@ -67,3 +67,99 @@ export async function deleteSmallGroupAction(id: string, tokenID: string) {
     return { success: false, error: "Network error occurred while deleting." };
   }
 }
+
+export async function deleteUserAction(id: string, tokenID: string) {
+  try {
+    const res = await fetch(`${BASE_URL}/admin/users/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${tokenID}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      return { success: false, error: errorData.message || "Failed to delete user" };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error("Delete Error:", err);
+    return { success: false, error: "Network error occurred while deleting." };
+  }
+}
+
+export async function deleteTeamMemberAction(id: string, tokenID: string) {
+  try {
+    const res = await fetch(`${BASE_URL}/admin/team-members/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${tokenID}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      return { success: false, error: errorData.message || "Failed to delete team member" };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error("Delete Error:", err);
+    return { success: false, error: "Network error occurred while deleting." };
+  }
+}
+
+export async function updateUserRoleAction(tokenID: string, userId: string, role: string) {
+  try {
+    const res = await fetch(`${BASE_URL}/admin/users/${userId}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${tokenID}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ role }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      return { success: false, error: data.message || "Failed to update role" };
+    }
+    return { success: true, data };
+  } catch (err) {
+    console.error("Update Role Error:", err);
+    return { success: false, error: "Network error occurred." };
+  }
+}
+
+export async function createTeamMemberAction(tokenID: string, body: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  password?: string;
+  role?: string;
+}) {
+  try {
+    const res = await fetch(`${BASE_URL}/admin/team-members`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${tokenID}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      return { success: false, error: data.message || "Failed to create team member" };
+    }
+
+    return { success: true, data };
+  } catch (err) {
+    console.error("Create Error:", err);
+    return { success: false, error: "Network error occurred." };
+  }
+}

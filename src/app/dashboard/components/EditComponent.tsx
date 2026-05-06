@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useActionState } from 'react'
 import Image from 'next/image'
-import { ArrowLeft, Video, Layers, Users, Upload, Package } from 'lucide-react'
+import { ArrowLeft, Video, Layers, Users } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import Link from 'next/link'
 import { updateSeriesAction, updateSmallGroupAction, updateVideoAction } from '@/app/editaction'
@@ -103,13 +103,6 @@ export default function EditContentForm() {
             </div>
           </div>
 
-          {type === 'videos' && (
-            <div className="hidden md:flex gap-3">
-              <Button type="submit" disabled={isPending} className="bg-amber-500 hover:bg-amber-600 text-white font-bold h-10 px-8 rounded-xl shadow-lg disabled:opacity-70">
-                {isPending ? "Updating..." : "Update"}
-              </Button>
-            </div>
-          )}
         </div>
 
         {/* Form Card */}
@@ -187,12 +180,6 @@ export default function EditContentForm() {
           <Link href={`/dashboard/${type}`}>
             <Button type="button" variant="outline" className="border-slate-200 dark:border-slate-800 rounded-xl px-6 h-10">Cancel</Button>
           </Link>
-          {(type === 'series' || type === 'small-group') && (
-            <>
-              <Button type="button" variant="outline" className="border-slate-200 dark:border-slate-800 rounded-xl px-5 h-10 gap-2"><Upload size={15} /> {type === 'series' ? 'Upload Episode' : 'Upload Video'}</Button>
-              <Button type="button" variant="outline" className="border-slate-200 dark:border-slate-800 rounded-xl px-5 h-10 gap-2"><Package size={15} /> Batch Upload</Button>
-            </>
-          )}
           <Button type="submit" disabled={isPending} className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-10 h-10 rounded-xl transition-all">
             {isPending ? "Updating..." : "Update"}
           </Button>

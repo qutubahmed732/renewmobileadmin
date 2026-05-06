@@ -1,18 +1,41 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Sidebar from "./sidebar"
 import { Button } from "@/components/ui/button"
-import { Menu } from "lucide-react"
+import { Menu, LogOut, User } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import Image from "next/image"
 import ThemeBtn from "@/context/ThemeButton"
 
 export default function DashboardClientWrapper({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setSidebarOpen] = useState(true)
   const [heading, setHeading] = useState<string | null>("Dashboard Overview")
+  const [profileOpen, setProfileOpen] = useState(false)
+  const profileRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
+  const router = useRouter()
+
+  useEffect(() => {
+    const token = localStorage.getItem("authorized token");
+    if (!token) router.push("/");
+  }, [])
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [])
+
+  const handleLogout = () => {
+    localStorage.removeItem("authorized token");
+    router.push("/");
+  }
 
   useEffect(() => {
     if (window.innerWidth < 1024) setSidebarOpen(false)
@@ -33,7 +56,7 @@ export default function DashboardClientWrapper({ children }: { children: React.R
       "/dashboard/admin": "Admin",
       "/dashboard/videos": "Videos Content",
       "/dashboard/series": "Series Content",
-      "/dashboard/small-groups": "Small Groups",
+      "/dashboard/small-group": "Small Groups",
       "/dashboard/upload": "Upload",
       "/dashboard/profile": "Profile"
     }
@@ -70,8 +93,33 @@ export default function DashboardClientWrapper({ children }: { children: React.R
             <div>
               <ThemeBtn />
             </div>
-            <div>
-              <Image src="/logo.png" alt="Profile" width={40} height={40} className="bg-amber-500 rounded-full shrink-0 object-cover" />
+            <div className="relative" ref={profileRef}>
+              <button
+                onClick={() => setProfileOpen(prev => !prev)}
+                className="rounded-full focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:focus:ring-offset-[#111318]"
+              >
+                <Image src="/logo.png" alt="Profile" width={40} height={40} className="bg-amber-500 rounded-full shrink-0 object-cover" />
+              </button>
+
+              {profileOpen && (
+                <div className="absolute right-0 top-12 w-48 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1a1d24] shadow-lg shadow-slate-200/50 dark:shadow-black/40 overflow-hidden z-50">
+                  <button
+                    onClick={() => { setProfileOpen(false); router.push("/dashboard/profile"); }}
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <User size={16} className="text-slate-400" />
+                    Profile & Security
+                  </button>
+                  <div className="h-px bg-slate-100 dark:bg-slate-700" />
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
+                  >
+                    <LogOut size={16} />
+                    Logout
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>

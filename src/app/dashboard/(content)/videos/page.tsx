@@ -4,15 +4,11 @@ import Image from "next/image"
 import { useState, useEffect, useMemo } from "react"
 import {
   Search,
-  Upload,
   Trash2,
   Edit3,
-  Eye,
   Calendar,
-  RefreshCw,
-  ArrowLeft,
-  ArrowRight
 } from "lucide-react"
+import { Pagination } from "@/components/ui/pagination"
 import { Button } from "@/components/ui/button"
 import VideoSkeleton from "../../../loading-skeletons/video-skeleton"
 import { getVideosAction } from "@/app/loadAction"
@@ -21,6 +17,7 @@ import { useRouter } from "next/navigation"
 import { deleteVideoAction } from "@/app/deleteAction"
 import { useToast } from "@/components/ui/toast"
 import { useConfirm } from "@/components/ui/toast"
+import { useAuthRedirect } from "@/hooks/useAuthRedirect"
 
 interface VideoItem {
   id: string;
@@ -50,6 +47,7 @@ export default function VideosList() {
   const router = useRouter()
   const { toast } = useToast()
   const confirm = useConfirm()
+  const handleUnauthorized = useAuthRedirect()
 
   useEffect(() => {
     setToken(localStorage.getItem("authorized token"));
@@ -62,6 +60,7 @@ export default function VideosList() {
 
         const result = await getVideosAction(token);
 
+        if (handleUnauthorized(result)) return;
         if (result.success) {
           setData(result.data?.data?.items || []);
           setLoading(false)
@@ -133,6 +132,7 @@ export default function VideosList() {
     const res = await deleteVideoAction(id, token);
     if (res.success) {
       setData((prev) => prev.filter((video) => video.id !== id));
+      setIsSheetOpen(false);
       toast({ type: 'success', title: 'Video deleted', message: 'The video has been removed.' });
     } else {
       toast({ type: 'error', title: 'Delete failed', message: res.error });
@@ -179,10 +179,7 @@ export default function VideosList() {
         <table className="w-full text-left min-w-250">
           <thead>
             <tr className="text-slate-400 dark:text-slate-500 text-sm font-medium border-b border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-transparent">
-              <th className="px-6 py-4 flex items-center gap-2">
-                <input type="checkbox" className="rounded border-slate-300" />
-                Videos
-              </th>
+              <th className="px-6 py-4">Videos</th>
               <th className="px-6 py-4">Status</th>
               {/* <th className="px-6 py-4">Visibility</th> */}
               <th className="px-6 py-4">Publish Date</th>
@@ -205,7 +202,6 @@ export default function VideosList() {
                   <tr key={video.id} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
-                        <input type="checkbox" className="rounded border-slate-300" />
                         <div className="relative shrink-0 w-20 md:w-24 h-12 md:h-14 rounded-md overflow-hidden bg-slate-900">
                           <Image
                             src={video.thumbnailUrl || "/logo.png"}
@@ -270,62 +266,19 @@ export default function VideosList() {
       </div>
 
       {!loading && totalPages > 1 && (
-        <div className="p-4 md:p-6 border-t border-slate-100 dark:border-slate-800 flex justify-center items-center bg-white dark:bg-[#111318]">
-          <div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-center">
-
-
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 disabled:opacity-30 transition-all hover:bg-slate-50 dark:hover:bg-slate-800"
-            >
-              <ArrowLeft size={18} />
-            </button>
-
-            {Array.from({ length: totalPages }).map((_, i) => {
-              const pageNum = i + 1;
-              const isVisible =
-                pageNum === 1 ||
-                pageNum === totalPages ||
-                (pageNum >= currentPage - 1 && pageNum <= currentPage + 1);
-
-              if (!isVisible) {
-                if (pageNum === currentPage - 2 || pageNum === currentPage + 2) {
-                  return <span key={pageNum} className="px-1 text-slate-400">...</span>;
-                }
-                return null;
-              }
-
-              return (
-                <button
-                  key={pageNum}
-                  onClick={() => setCurrentPage(pageNum)}
-                  className={`w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl border text-sm font-medium transition-all ${currentPage === pageNum
-                    ? "bg-[#eab308] border-[#eab308] text-white shadow-lg shadow-amber-500/20"
-                    : "border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-                    }`}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
-
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 disabled:opacity-30 transition-all hover:bg-slate-50 dark:hover:bg-slate-800"
-            >
-              <ArrowRight size={18} />
-            </button>
-
-          </div>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+          totalPages={totalPages}
+          disabled={loading}
+        />
       )}
 
       <SeriesDetailSheet
         series={selectedSeries}
         open={isSheetOpen}
         setOpen={setIsSheetOpen}
+        onDelete={deleteHandler}
       />
     </div>
   )

@@ -8,13 +8,13 @@ import {
   Eye,
   Calendar,
   Upload,
-  ArrowUpDown
 } from "lucide-react"
 import { SeriesDetailSheet } from "@/components/SeriesDetailSheet";
 import { Button } from "@/components/ui/button";
 import VideoSkeleton from "../../../loading-skeletons/video-skeleton";
 import Image from "next/image";
 import { getSeriesAction } from "@/app/loadAction";
+import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 import { deleteSeriesAction } from "@/app/deleteAction";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/toast";
@@ -24,6 +24,7 @@ export default function SeriesList() {
   const router = useRouter()
   const { toast } = useToast();
   const confirm = useConfirm();
+  const handleUnauthorized = useAuthRedirect();
   const [search, setSearch] = useState("")
 
   const [data, setData] = useState([]);
@@ -41,6 +42,7 @@ export default function SeriesList() {
         const token = localStorage.getItem("authorized token");
         const result = await getSeriesAction(token);
 
+        if (handleUnauthorized(result)) return;
         if (result.success) {
           setData(result.data?.data?.items || []);
           setLoading(false)
@@ -89,6 +91,7 @@ export default function SeriesList() {
     const res = await deleteSeriesAction(id, token);
     if (res.success) {
       setData((prev: any) => prev.filter((s: any) => s.id !== id));
+      setIsSheetOpen(false);
       toast({ type: 'success', title: 'Series deleted', message: 'The series has been removed.' });
     } else {
       toast({ type: 'error', title: 'Delete failed', message: res.error });
@@ -115,9 +118,6 @@ export default function SeriesList() {
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Button type="button" variant="outline" className="...">
-              <ArrowUpDown size={16} /> Sort
-            </Button>
 
             {/* <Button
                 type="button"
@@ -137,12 +137,7 @@ export default function SeriesList() {
           <table className="w-full text-left min-w-250 border-collapse">
             <thead>
               <tr className="text-slate-400 dark:text-slate-500 text-sm font-medium border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-white/5">
-                <th className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" className="rounded border-slate-300 dark:bg-slate-800 dark:border-slate-700" />
-                    Series
-                  </div>
-                </th>
+                <th className="px-6 py-4">Series</th>
                 <th className="px-6 py-4">Visibility</th>
                 <th className="px-6 py-4 text-center">Publish Date</th>
                 {/* <th className="px-6 py-4 text-center">Episodes</th> */}
@@ -159,7 +154,6 @@ export default function SeriesList() {
                   <tr key={series.id} className="group hover:bg-slate-50/50 dark:hover:bg-white/2 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
-                        <input type="checkbox" className="rounded border-slate-300 dark:bg-slate-800 dark:border-slate-700" />
                         <div className="relative shrink-0 w-20 h-12 rounded-sm bg-slate-800 overflow-hidden border border-slate-100 dark:border-slate-700">
                           <Image
                             src={series.thumbnailUrl}
@@ -244,6 +238,7 @@ export default function SeriesList() {
         series={selectedSeries}
         open={isSheetOpen}
         setOpen={setIsSheetOpen}
+        onDelete={deleteHandler}
       />
 
     </div>

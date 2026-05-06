@@ -1,9 +1,9 @@
 "use client";
 
-import { use, useState, useRef, useCallback } from "react";
+import { use, useState, useRef, useCallback, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { ArrowLeft, Upload, FileVideo, Loader2, CheckCircle2, X } from "lucide-react";
+import { ArrowLeft, Upload, FileVideo, Loader2, CheckCircle2, X, AlertTriangle } from "lucide-react";
 import * as tus from "tus-js-client";
 import {
   createSeriesEpisodeSessionAction,
@@ -64,6 +64,15 @@ export default function UploadEpisodePage({ params }: { params: Promise<{ id: st
     videoIdRef.current = null;
     tusUploadRef.current = null;
   }, []);
+
+  useEffect(() => {
+    if (!loading) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [loading]);
 
   const handleBack = useCallback(() => {
     router.push("/dashboard/series");
@@ -217,6 +226,22 @@ export default function UploadEpisodePage({ params }: { params: Promise<{ id: st
             <h1 className="text-lg font-bold text-slate-900 dark:text-white">Upload Episode</h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 truncate">{seriesTitle}</p>
           </div>
+
+          {loading ? (
+            <div className="mx-6 mt-5 flex items-start gap-3 rounded-xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/10 px-4 py-3">
+              <AlertTriangle size={18} className="text-rose-500 shrink-0 mt-0.5" />
+              <p className="text-sm text-rose-700 dark:text-rose-400 font-medium leading-snug">
+                Upload in progress — <span className="font-bold">do not close or navigate away</span> or your upload will be lost.
+              </p>
+            </div>
+          ) : (
+            <div className="mx-6 mt-5 flex items-start gap-3 rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-4 py-3">
+              <AlertTriangle size={18} className="text-amber-500 shrink-0 mt-0.5" />
+              <p className="text-sm text-amber-700 dark:text-amber-400 leading-snug">
+                Once the upload starts, <span className="font-semibold">keep this page open</span> until it completes. Closing or navigating away will cancel the upload and all progress will be lost.
+              </p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="p-6 space-y-5">
 

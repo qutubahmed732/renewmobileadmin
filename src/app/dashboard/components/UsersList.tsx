@@ -7,14 +7,19 @@ import {
   Calendar,
   Trash2,
   CheckCircle2,
-  Clock
+  Clock,
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getUsersAction } from "@/app/loadAction"
-import { cn } from "@/lib/utils"
+import { useAuthRedirect } from "@/hooks/useAuthRedirect"
+import UsersSkeleton from "@/app/loading-skeletons/users-skeleton"
+import { deleteUserAction } from "@/app/deleteAction"
+import { useToast } from "@/components/ui/toast"
+import { useConfirm } from "@/components/ui/toast"
+import { Pagination } from "@/components/ui/pagination"
 
 export default function UsersList({ role }: { role: string }) {
   const [searchQuery, setSearchQuery] = useState("")
@@ -22,48 +27,76 @@ export default function UsersList({ role }: { role: string }) {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(true);
+  const [totalPages, setTotalPages] = useState<number | undefined>(undefined);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const handleUnauthorized = useAuthRedirect();
+  const { toast } = useToast();
+  const confirm = useConfirm();
+
+  // Debounce search input — reset to page 1 when query changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const deleteHandler = async (id: string) => {
+    const token = localStorage.getItem("authorized token");
+    if (!token) return;
+    const ok = await confirm({
+      title: "Delete User",
+      message: "This will permanently delete the user and all their data.",
+      confirmLabel: "Delete",
+      danger: true,
+    });
+    if (!ok) return;
+    const res = await deleteUserAction(id, token);
+    if (res.success) {
+      setData((prev: any) => prev.filter((u: any) => u.id !== id));
+      toast({ type: "success", title: "User deleted", message: "The user has been removed." });
+    } else {
+      toast({ type: "error", title: "Delete failed", message: res.error });
+    }
+  };
 
   const fetchUsersData = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("authorized token");
-      const result = await getUsersAction(token, currentPage, 10, role);
+      const result = await getUsersAction(token, currentPage, 10, role, debouncedSearch);
 
+      if (handleUnauthorized(result)) return;
       if (result.success) {
-        const items = result.data?.data?.items || [];
+        const page = result.data?.data;
+        const items = page?.items || [];
+        const total = page?.total ?? page?.totalCount ?? null;
+        const limit = 10;
         setData(items);
-        setHasNextPage(items.length === 10);
+        if (total !== null) {
+          setTotalPages(Math.ceil(total / limit));
+          setHasNextPage(currentPage < Math.ceil(total / limit));
+        } else {
+          setTotalPages(undefined);
+          setHasNextPage(items.length === limit);
+        }
       }
     } catch (err) {
       console.error("Fetch error:", err);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, role]);
+  }, [currentPage, role, debouncedSearch]);
 
   useEffect(() => {
     fetchUsersData();
   }, [fetchUsersData]);
 
-  const filteredUsers = useMemo(() => {
-    return data.filter((user: any) => {
-      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
-      const searchLower = searchQuery.toLowerCase();
-      return (
-        fullName.includes(searchLower) ||
-        user.email.toLowerCase().includes(searchLower) ||
-        (user.role && user.role.toLowerCase().includes(searchLower))
-      );
-    });
-  }, [data, searchQuery]);
-
   return (
     <div className="w-full rounded-2xl border bg-white dark:bg-[#111318] border-slate-200 dark:border-slate-800 overflow-hidden transition-all duration-300">
       <div className="p-6 flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-slate-100 dark:border-slate-800">
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          Users List
-          {loading && <Clock className="animate-spin text-amber-500" size={16} />}
-        </h2>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Users List</h2>
         
         <div className="flex items-center w-full sm:w-80 rounded-sm border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 overflow-hidden focus-within:ring-2 focus-within:ring-amber-500/50 transition-all">
           <div className="px-3 py-2.5 border-r border-slate-200 dark:border-slate-800 flex items-center justify-center bg-slate-100/50 dark:bg-slate-800/30">
@@ -79,7 +112,7 @@ export default function UsersList({ role }: { role: string }) {
         </div>
       </div>
 
-      <div className={cn("overflow-x-auto transition-opacity duration-200", loading ? "opacity-50" : "opacity-100")}>
+      <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="text-slate-400 dark:text-slate-500 text-sm font-medium border-b border-slate-100 dark:border-slate-800">
@@ -92,8 +125,10 @@ export default function UsersList({ role }: { role: string }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {filteredUsers.length > 0 ? (
-              filteredUsers.map((user: any) => (
+            {loading ? (
+              <UsersSkeleton />
+            ) : data.length > 0 ? (
+              data.map((user: any) => (
                 <tr key={user.id} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -132,13 +167,13 @@ export default function UsersList({ role }: { role: string }) {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <Button variant="ghost" size="icon" className="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 h-8 w-8">
+                    <Button onClick={() => deleteHandler(user.id)} variant="ghost" size="icon" className="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 h-8 w-8">
                       <Trash2 size={16} />
                     </Button>
                   </td>
                 </tr>
               ))
-            ) : !loading && (
+            ) : (
               <tr>
                 <td colSpan={6} className="px-6 py-10 text-center text-slate-500">No users found.</td>
               </tr>
@@ -147,21 +182,13 @@ export default function UsersList({ role }: { role: string }) {
         </table>
       </div>
 
-      <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/20">
-        <span className="text-xs font-medium text-slate-500">Page {currentPage}</span>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline" size="sm"
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={currentPage === 1 || loading}
-          >Previous</Button>
-          <Button
-            variant="outline" size="sm"
-            onClick={() => setCurrentPage(p => p + 1)}
-            disabled={!hasNextPage || loading}
-          >Next</Button>
-        </div>
-      </div>
+      <Pagination
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        totalPages={totalPages}
+        hasNextPage={hasNextPage}
+        disabled={loading}
+      />
     </div>
   )
 }

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ShieldCheck, ShieldAlert, KeyRound, Loader2, QrCode, Copy, Check } from "lucide-react";
+import { ShieldCheck, ShieldAlert, KeyRound, QrCode, Copy, Check } from "lucide-react";
+import ProfileSkeleton from "@/app/loading-skeletons/profile-skeleton";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 import { getMfaStatusAction, setupMfaAction, verifyMfaSetupAction, disableMfaAction } from "@/app/MFAactions";
 import { QRCodeCanvas } from "qrcode.react";
 
@@ -148,12 +148,7 @@ export default function AdminProfile() {
   };
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-3">
-        <Loader2 className="h-10 w-10 animate-spin text-amber-500" />
-        <p className="text-slate-500 font-medium">Loading profile...</p>
-      </div>
-    );
+    return <ProfileSkeleton />;
   }
 
   return (

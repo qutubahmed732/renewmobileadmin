@@ -58,7 +58,7 @@ export default function Dashboard() {
       icon: <Info size={16} className="text-slate-500" />,
     },
     {
-      title: "Total Small Group",
+      title: "Total Small Groups",
       value: chartStats?.data?.totals?.groups || "...",
       icon: <Info size={16} className="text-slate-500" />,
     },

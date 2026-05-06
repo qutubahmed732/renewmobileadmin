@@ -8,7 +8,6 @@ import {
   Calendar,
   Upload,
   Users,
-  ArrowUpDown
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react";
@@ -20,11 +19,13 @@ import { useRouter } from "next/navigation";
 import { deleteSmallGroupAction } from "@/app/deleteAction";
 import { useToast } from "@/components/ui/toast";
 import { useConfirm } from "@/components/ui/toast";
+import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 
 export default function SmallGroupsTable() {
   const router = useRouter()
   const { toast } = useToast();
   const confirm = useConfirm();
+  const handleUnauthorized = useAuthRedirect();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -37,6 +38,7 @@ export default function SmallGroupsTable() {
         const token = localStorage.getItem("authorized token");
         const result = await getSmallGroupsAction(token);
 
+        if (handleUnauthorized(result)) return;
         if (result.success) {
           setData(result.data?.data?.items || []);
           setLoading(false)
@@ -76,6 +78,7 @@ export default function SmallGroupsTable() {
     const res = await deleteSmallGroupAction(id, token as string);
     if (res.success) {
       setData((prev: any) => prev.filter((item: any) => item.id !== id));
+      setIsSheetOpen(false);
       toast({ type: 'success', title: 'Small group deleted', message: 'The group has been removed.' });
     } else {
       toast({ type: 'error', title: 'Delete failed', message: res.error });
@@ -96,9 +99,6 @@ export default function SmallGroupsTable() {
               className="w-full bg-slate-50 dark:bg-[#1a1d24] border border-slate-200 dark:border-slate-800 rounded-lg py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500/50 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-600"
             />
           </div>
-          <Button variant="outline" className="border-slate-200 dark:border-slate-800 bg-white dark:bg-[#1a1d24] text-slate-600 dark:text-slate-300 gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-            <ArrowUpDown size={16} /> Sort
-          </Button>
           {/* <Button onClick={handleUploadClick} className="bg-[#eab308] hover:bg-[#ca8a04] text-[#111318] gap-2 font-bold border-none transition-transform active:scale-95 shadow-sm">
             <Plus size={20} /> Create Small Group
           </Button> */}
@@ -109,9 +109,6 @@ export default function SmallGroupsTable() {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-y border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/20 text-sm font-medium text-slate-500 dark:text-slate-500">
-              <th className="px-6 py-4 w-10">
-                <input type="checkbox" className="rounded border-slate-300 dark:border-slate-700 bg-transparent focus:ring-amber-500/50" />
-              </th>
               <th className="px-6 py-4 min-w-75">Small Group Videos</th>
               {/* <th className="px-6 py-4">Attachment</th> */}
               <th className="px-6 py-4 text-center">Visibility</th>
@@ -134,10 +131,6 @@ export default function SmallGroupsTable() {
 
                 return (
                   <tr key={item.id} className="group hover:bg-slate-50/30 dark:hover:bg-white/2 transition-colors">
-                    <td className="px-6 py-8 align-top">
-                      <input type="checkbox" className="rounded border-slate-300 dark:border-slate-700 bg-transparent mt-1" />
-                    </td>
-
                     <td className="px-6 py-6">
                       <div className="flex gap-4">
                         <div className="w-32 h-20 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shrink-0 overflow-hidden relative shadow-sm">
@@ -146,7 +139,7 @@ export default function SmallGroupsTable() {
                           </div>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <h3 onClick={() => handleRowClick(item)} className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-amber-500 transition-colors">
+                          <h3 onClick={() => handleRowClick(item)} className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-amber-500 transition-colors cursor-pointer">
                             {item.title}
                           </h3>
                           <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2 max-w-xl">
@@ -247,6 +240,7 @@ export default function SmallGroupsTable() {
         series={selectedSeries}
         open={isSheetOpen}
         setOpen={setIsSheetOpen}
+        onDelete={deleteHandler}
       />
     </div>
   )

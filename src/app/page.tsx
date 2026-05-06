@@ -1,6 +1,6 @@
 "use client"
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { loginAction } from './loadAction';
 import { verifyMfaLoginAction } from './MFAactions';
@@ -42,10 +42,14 @@ const AdminLogin = () => {
 
         const responseData = result.data?.data || result.data;
 
-        // Check if MFA is required
-        if (result.status === 403 || result.status === 401 || responseData?.mfaRequired || responseData?.mfaToken || responseData?.challengeToken || responseData?.challengeId || responseData?.factorId) {
-          console.log("MFA Challenge required:", responseData);
-          setMfaToken(responseData?.challengeToken || responseData?.mfaToken || responseData?.challengeId || responseData?.factorId || "dummy_token");
+        // MFA required — only when the API explicitly signals it
+        if (responseData?.mfaRequired === true) {
+          setMfaToken(responseData?.challengeToken || "");
+          return;
+        }
+
+        if (!result.success) {
+          alert(responseData?.message || "Login failed. Please check your credentials.");
           return;
         }
 
