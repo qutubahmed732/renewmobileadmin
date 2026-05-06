@@ -113,9 +113,16 @@ export default function VideosList() {
   // }
 
   const deleteHandler = async (id: string) => {
-    console.log(id, token)
-    // const res = await deleteVideoAction(id, token)
-  }
+    if (!token) return;
+    if (!confirm("Are you sure you want to delete this video?")) return;
+
+    const res = await deleteVideoAction(id, token);
+    if (res.success) {
+      setData((prev) => prev.filter((video) => video.id !== id));
+    } else {
+      alert(res.error || "Failed to delete video");
+    }
+  };
 
   return (
     <div className="w-full rounded-2xl border bg-white dark:bg-[#111318] border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
