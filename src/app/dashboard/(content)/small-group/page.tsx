@@ -20,10 +20,12 @@ import { SeriesDetailSheet } from "@/components/SeriesDetailSheet";
 import { useRouter } from "next/navigation";
 import { deleteSmallGroupAction } from "@/app/deleteAction";
 import { useToast } from "@/components/ui/toast";
+import { useConfirm } from "@/components/ui/toast";
 
 export default function SmallGroupsTable() {
   const router = useRouter()
   const { toast } = useToast();
+  const confirm = useConfirm();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -69,7 +71,13 @@ export default function SmallGroupsTable() {
 
   const deleteHandler = async (id: string) => {
     if (!token) return;
-    if (!window.confirm("Are you sure you want to delete this small group?")) return;
+    const ok = await confirm({
+      title: "Delete Small Group",
+      message: "This will permanently delete the group and all associated data.",
+      confirmLabel: "Delete",
+      danger: true,
+    });
+    if (!ok) return;
     const res = await deleteSmallGroupAction(id, token as string);
     if (res.success) {
       setData((prev: any) => prev.filter((item: any) => item.id !== id));

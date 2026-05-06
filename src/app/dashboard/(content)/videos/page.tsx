@@ -20,6 +20,7 @@ import { SeriesDetailSheet } from "@/components/SeriesDetailSheet"
 import { useRouter } from "next/navigation"
 import { deleteVideoAction } from "@/app/deleteAction"
 import { useToast } from "@/components/ui/toast"
+import { useConfirm } from "@/components/ui/toast"
 
 interface VideoItem {
   id: string;
@@ -47,6 +48,7 @@ export default function VideosList() {
 
   const router = useRouter()
   const { toast } = useToast()
+  const confirm = useConfirm()
 
   const token = localStorage.getItem("authorized token");
 
@@ -116,7 +118,13 @@ export default function VideosList() {
 
   const deleteHandler = async (id: string) => {
     if (!token) return;
-    if (!window.confirm("Are you sure you want to delete this video?")) return;
+    const ok = await confirm({
+      title: "Delete Video",
+      message: "This action cannot be undone. The video will be permanently removed.",
+      confirmLabel: "Delete",
+      danger: true,
+    });
+    if (!ok) return;
 
     const res = await deleteVideoAction(id, token);
     if (res.success) {

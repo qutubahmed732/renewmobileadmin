@@ -20,10 +20,12 @@ import { getSeriesAction } from "@/app/loadAction";
 import { deleteSeriesAction } from "@/app/deleteAction";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/toast";
+import { useConfirm } from "@/components/ui/toast";
 
 export default function SeriesList() {
   const router = useRouter()
   const { toast } = useToast();
+  const confirm = useConfirm();
   const [search, setSearch] = useState("")
 
   const [data, setData] = useState([]);
@@ -85,7 +87,13 @@ export default function SeriesList() {
 
   const deleteHandler = async (id: string) => {
     if (!token) return;
-    if (!window.confirm("Are you sure you want to delete this series?")) return;
+    const ok = await confirm({
+      title: "Delete Series",
+      message: "This will permanently delete the series and all associated data.",
+      confirmLabel: "Delete",
+      danger: true,
+    });
+    if (!ok) return;
     const res = await deleteSeriesAction(id, token);
     if (res.success) {
       setData((prev: any) => prev.filter((s: any) => s.id !== id));
