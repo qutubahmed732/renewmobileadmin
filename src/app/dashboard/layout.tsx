@@ -3,7 +3,7 @@ import DashboardClientWrapper from "./components/dashboard-client-wrapper"
 
 export const metadata: Metadata = {
   title: "Dashboard | Renew Mobile Admin",
-  description: "Securely login to your account. Access your dashboard and manage your projects efficiently.",
+  description: "Login to your account.",
   robots: "noindex, nofollow",
 };
 

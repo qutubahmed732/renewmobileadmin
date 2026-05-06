@@ -11,7 +11,7 @@ const jakartaSans = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-ja
 
 export const metadata: Metadata = {
   title: "Login | Renew Mobile Admin",
-  description: "Securely login to your account. Access your dashboard and manage your projects efficiently.",
+  description: "Login to your account.",
   robots: "noindex, nofollow",
 };
 
