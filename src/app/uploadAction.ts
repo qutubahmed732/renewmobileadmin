@@ -1,8 +1,11 @@
 "use server";
 
+import { getAuthToken } from "@/lib/auth-cookies";
+
 const BASE_URL = "https://application.renew.org";
 
-export async function uploadVideoAction(token: string | null, formData: FormData) {
+export async function uploadVideoAction(formData: FormData) {
+  const token = await getAuthToken();
   try {
     const response = await fetch(`${BASE_URL}/admin/videos`, {
       method: "POST",
@@ -28,7 +31,8 @@ export async function uploadVideoAction(token: string | null, formData: FormData
   }
 }
 
-export async function uploadSeriesAction(token: string | null, formData: FormData) {
+export async function uploadSeriesAction(formData: FormData) {
+  const token = await getAuthToken();
   try {
     const response = await fetch(`${BASE_URL}/admin/series`, {
       method: "POST",
@@ -56,7 +60,8 @@ export async function uploadSeriesAction(token: string | null, formData: FormDat
   }
 }
 
-export async function uploadSmallGroupAction(token: string | null, formData: FormData) {
+export async function uploadSmallGroupAction(formData: FormData) {
+  const token = await getAuthToken();
   try {
     const response = await fetch(`${BASE_URL}/admin/small-groups`, {
       method: "POST",
@@ -86,7 +91,8 @@ export async function uploadSmallGroupAction(token: string | null, formData: For
 
 // =============================== TUS UPLOAD ACTIONS ===============================
 
-export async function createVideoSessionAction(token: string | null, formData: FormData) {
+export async function createVideoSessionAction(formData: FormData) {
+  const token = await getAuthToken();
   try {
     const response = await fetch(`${BASE_URL}/admin/videos/upload-sessions`, {
       method: "POST",
@@ -119,7 +125,8 @@ export async function createVideoSessionAction(token: string | null, formData: F
   }
 }
 
-export async function completeVideoUploadAction(token: string | null, videoId: string | number) {
+export async function completeVideoUploadAction(videoId: string | number) {
+  const token = await getAuthToken();
   try {
     const response = await fetch(`${BASE_URL}/admin/videos/${videoId}/complete-upload`, {
       method: "POST",
@@ -151,7 +158,8 @@ export async function completeVideoUploadAction(token: string | null, videoId: s
   }
 }
 
-export async function cancelVideoUploadAction(token: string | null, videoId: string | number) {
+export async function cancelVideoUploadAction(videoId: string | number) {
+  const token = await getAuthToken();
   try {
     const response = await fetch(`${BASE_URL}/admin/videos/${videoId}/cancel-upload`, {
       method: "POST",
@@ -172,10 +180,10 @@ export async function cancelVideoUploadAction(token: string | null, videoId: str
 }
 
 export async function createSeriesEpisodeSessionAction(
-  token: string | null,
   seriesId: string,
   formData: FormData
 ) {
+  const token = await getAuthToken();
   try {
     const response = await fetch(`${BASE_URL}/admin/series/${seriesId}/video-upload-sessions`, {
       method: "POST",
@@ -192,10 +200,10 @@ export async function createSeriesEpisodeSessionAction(
 }
 
 export async function createSmallGroupEpisodeSessionAction(
-  token: string | null,
   groupId: string,
   formData: FormData
 ) {
+  const token = await getAuthToken();
   try {
     const response = await fetch(`${BASE_URL}/admin/small-groups/${groupId}/video-upload-sessions`, {
       method: "POST",
@@ -211,7 +219,8 @@ export async function createSmallGroupEpisodeSessionAction(
   }
 }
 
-export async function getVideoUploadStatusAction(token: string | null, videoId: string | number) {
+export async function getVideoUploadStatusAction(videoId: string | number) {
+  const token = await getAuthToken();
   try {
     const response = await fetch(`${BASE_URL}/admin/videos/${videoId}/upload-status`, {
       method: "GET",

@@ -83,9 +83,8 @@ export default function UploadEpisodePage({ params }: { params: Promise<{ id: st
       try { tusUploadRef.current.abort(); } catch {}
       tusUploadRef.current = null;
     }
-    const token = localStorage.getItem("authorized token");
-    if (videoIdRef.current && token) {
-      try { await cancelVideoUploadAction(token, videoIdRef.current); } catch {}
+    if (videoIdRef.current) {
+      try { await cancelVideoUploadAction(videoIdRef.current); } catch {}
     }
     reset();
     router.push("/dashboard/series");
@@ -107,8 +106,6 @@ export default function UploadEpisodePage({ params }: { params: Promise<{ id: st
     setLoading(true);
     setPhase("creating-session");
 
-    const token = localStorage.getItem("authorized token");
-
     const metadata = JSON.stringify([{
       title: title.trim(),
       description: description.trim() || undefined,
@@ -123,7 +120,7 @@ export default function UploadEpisodePage({ params }: { params: Promise<{ id: st
       formData.append("thumbnailIndexes", "[0]");
     }
 
-    const sessionRes = await createSeriesEpisodeSessionAction(token, seriesId, formData);
+    const sessionRes = await createSeriesEpisodeSessionAction(seriesId, formData);
 
     if (!sessionRes.success) {
       const msg =
@@ -174,7 +171,7 @@ export default function UploadEpisodePage({ params }: { params: Promise<{ id: st
         setUploadProgress(100);
         setPhase("finalizing");
 
-        const completeRes = await completeVideoUploadAction(token!, videoId);
+        const completeRes = await completeVideoUploadAction(videoId);
 
         if (completeRes.success) {
           setPhase("done");
@@ -184,7 +181,7 @@ export default function UploadEpisodePage({ params }: { params: Promise<{ id: st
           return;
         }
 
-        const statusRes = await getVideoUploadStatusAction(token!, videoId);
+        const statusRes = await getVideoUploadStatusAction(videoId);
         const statusPayload = statusRes.data?.data ?? statusRes.data;
         const status: string = statusPayload?.status || "";
 

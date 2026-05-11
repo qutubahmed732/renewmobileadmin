@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
+import { clearAuthCookie } from "@/lib/auth-cookies";
 
 export function useAuthRedirect() {
   const router = useRouter();
@@ -9,8 +10,7 @@ export function useAuthRedirect() {
   return useCallback(
     (result: { status?: number; success?: boolean }) => {
       if (result?.status === 401) {
-        localStorage.removeItem("authorized token");
-        router.push("/");
+        clearAuthCookie().then(() => router.push("/"));
         return true;
       }
       return false;

@@ -19,10 +19,8 @@ export default function Dashboard() {
     const fetchAllData = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("authorized token");
-
         const [dashboardStatesResult] = await Promise.all([
-          getDashboardStatsAction(token)
+          getDashboardStatsAction()
         ]);
 
         if (dashboardStatesResult.success) {
@@ -62,11 +60,16 @@ export default function Dashboard() {
       value: chartStats?.data?.totals?.groups || "...",
       icon: <Info size={16} className="text-slate-500" />,
     },
+    {
+      title: "Total Gatherings",
+      value: chartStats?.data?.totals?.gatherings ?? "...",
+      icon: <Info size={16} className="text-slate-500" />,
+    },
   ];
 
   return (
     <section className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {stats.map((item, index) => (
           <Card
             key={index}

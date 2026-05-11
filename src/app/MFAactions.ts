@@ -1,5 +1,7 @@
 "use server";
 
+import { getAuthToken } from "@/lib/auth-cookies";
+
 const BASE_URL = "https://application.renew.org";
 
 // ______________________________ MFA FUNCTIONS _____________________
@@ -21,7 +23,8 @@ export async function verifyMfaLoginAction(code: string, mfaToken: string) {
 }
 
 // 2. Get MFA Status
-export async function getMfaStatusAction(token: string | null) {
+export async function getMfaStatusAction() {
+  const token = await getAuthToken();
   try {
     const response = await fetch(`${BASE_URL}/auth/admin/mfa/status`, {
       method: "GET",
@@ -38,7 +41,8 @@ export async function getMfaStatusAction(token: string | null) {
 }
 
 // 3. Setup MFA
-export async function setupMfaAction(token: string | null, currentPassword?: string) {
+export async function setupMfaAction(currentPassword?: string) {
+  const token = await getAuthToken();
   try {
     const response = await fetch(`${BASE_URL}/auth/admin/mfa/totp/setup`, {
       method: "POST",
@@ -56,7 +60,8 @@ export async function setupMfaAction(token: string | null, currentPassword?: str
 }
 
 // 4. Verify MFA Setup
-export async function verifyMfaSetupAction(token: string | null, code: string, factorId: string) {
+export async function verifyMfaSetupAction(code: string, factorId: string) {
+  const token = await getAuthToken();
   try {
     const response = await fetch(`${BASE_URL}/auth/admin/mfa/totp/verify`, {
       method: "POST",
@@ -75,7 +80,8 @@ export async function verifyMfaSetupAction(token: string | null, code: string, f
 }
 
 // 5. Disable MFA
-export async function disableMfaAction(token: string | null, currentPassword?: string, code?: string) {
+export async function disableMfaAction(currentPassword?: string, code?: string) {
+  const token = await getAuthToken();
   try {
     const response = await fetch(`${BASE_URL}/auth/admin/mfa/disable`, {
       method: "POST",

@@ -16,7 +16,6 @@ export default function EditContentForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isLoaded, setIsLoaded] = useState(false);
-  const [token, setToken] = useState("")
 
   const { toast } = useToast();
 
@@ -33,7 +32,6 @@ export default function EditContentForm() {
     console.log(selectedFile);
   };
 
-  // localStorage se data load karna
   useEffect(() => {
     const savedData = localStorage.getItem("editData");
     const savedType = localStorage.getItem("editType") as ContentType;
@@ -43,7 +41,6 @@ export default function EditContentForm() {
       setData(parsed);
       setTitle(parsed.title || "");
       setDescription(parsed.description || "");
-      setToken(localStorage.getItem("authorized token") as string)
     }
     if (savedType) setType(savedType);
     setIsLoaded(true);
@@ -63,7 +60,7 @@ export default function EditContentForm() {
   const [state, formAction, isPending]: any = useActionState(
     async (prevState: any, formData: FormData) => {
       if (!updateActionWithArgs) return { error: "Data not loaded" };
-      return await updateActionWithArgs(formData, token as string);
+      return await updateActionWithArgs(formData);
     },
     null
   );
@@ -113,11 +110,31 @@ export default function EditContentForm() {
               <input name="title" type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-slate-50 dark:bg-[#1a1d24] border border-slate-200 dark:border-slate-800 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-amber-500/20" />
             </div>
 
-            {type === 'videos' && (
+            {type === 'videos' && !data?.gatheringTrack && !data?.smallGroup && data?.series && (
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-400 ml-1">Series</label>
                 <select name="seriesId" className="w-full bg-slate-50 dark:bg-[#1a1d24] border border-slate-200 dark:border-slate-800 rounded-xl py-3 px-4 outline-none">
                   <option value={data?.series?.id}>{data?.series?.title || "Select Series"}</option>
+                </select>
+              </div>
+            )}
+
+            {type === 'videos' && data?.gatheringTrack && (
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-400 ml-1">Gathering</label>
+                <select name="gatheringTrackId" className="w-full bg-slate-50 dark:bg-[#1a1d24] border border-slate-200 dark:border-slate-800 rounded-xl py-3 px-4 outline-none">
+                  <option value={data.gatheringTrack.id}>
+                    {data.gatheringTrack.gathering?.title || data.gatheringTrack.title || "Select Gathering"}
+                  </option>
+                </select>
+              </div>
+            )}
+
+            {type === 'videos' && data?.smallGroup && (
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-400 ml-1">Small Group</label>
+                <select name="smallGroupId" className="w-full bg-slate-50 dark:bg-[#1a1d24] border border-slate-200 dark:border-slate-800 rounded-xl py-3 px-4 outline-none">
+                  <option value={data.smallGroup.id}>{data.smallGroup.title || "Select Small Group"}</option>
                 </select>
               </div>
             )}

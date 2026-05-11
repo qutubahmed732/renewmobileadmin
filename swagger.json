@@ -42,6 +42,15 @@
                         }
                     },
                     {
+                        "name": "includeGatherings",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "default": true,
+                            "type": "boolean"
+                        }
+                    },
+                    {
                         "name": "includeContinueWatching",
                         "required": false,
                         "in": "query",
@@ -82,6 +91,16 @@
                     },
                     {
                         "name": "smallGroupsLimit",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "minimum": 1,
+                            "default": 10,
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "gatheringsLimit",
                         "required": false,
                         "in": "query",
                         "schema": {
@@ -206,6 +225,7 @@
                                 "all",
                                 "video",
                                 "series",
+                                "gathering",
                                 "group",
                                 "attachment"
                             ],
@@ -1032,6 +1052,170 @@
                 }
             }
         },
+        "/mobile/gatherings/home": {
+            "get": {
+                "operationId": "GatheringsController_home",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "featuredOnly",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/mobile/gatherings": {
+            "get": {
+                "operationId": "GatheringsController_list",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "featuredOnly",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/mobile/gatherings/{id}": {
+            "get": {
+                "operationId": "GatheringsController_detail",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/mobile/gatherings/{id}/progress": {
+            "get": {
+                "operationId": "GatheringsController_progress",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/mobile/gatherings/{id}/start": {
+            "get": {
+                "operationId": "GatheringsController_start",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/mobile/gatherings/{id}/sessions/{sessionId}": {
+            "get": {
+                "operationId": "GatheringsController_session",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sessionId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/mobile/gatherings/{id}/downloads": {
+            "get": {
+                "operationId": "GatheringsController_downloads",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/mobile/library/home": {
             "get": {
                 "operationId": "LibraryController_home",
@@ -1055,7 +1239,8 @@
                             "enum": [
                                 "VIDEO",
                                 "SERIES",
-                                "SMALL_GROUP"
+                                "SMALL_GROUP",
+                                "GATHERING"
                             ],
                             "type": "string"
                         }
@@ -1810,7 +1995,8 @@
                             "enum": [
                                 "VIDEO",
                                 "SERIES",
-                                "SMALL_GROUP"
+                                "SMALL_GROUP",
+                                "GATHERING"
                             ],
                             "type": "string"
                         }
@@ -3138,6 +3324,11 @@
                                         "format": "uuid",
                                         "nullable": true
                                     },
+                                    "gatheringTrackId": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "nullable": true
+                                    },
                                     "attachmentTitle": {
                                         "type": "string",
                                         "nullable": true
@@ -3183,6 +3374,30 @@
                     },
                     {
                         "name": "seriesId",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "smallGroupId",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "gatheringTrackId",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "gatheringId",
                         "required": false,
                         "in": "query",
                         "schema": {
@@ -3243,7 +3458,7 @@
                                 "properties": {
                                     "metadata": {
                                         "type": "string",
-                                        "example": "[{\"title\":\"Video 1\",\"description\":\"Overview\",\"seriesId\":\"...\",\"attachmentTitle\":\"Guide\"}]"
+                                        "example": "[{\"title\":\"Video 1\",\"description\":\"Overview\",\"seriesId\":\"...\",\"gatheringTrackId\":\"...\",\"attachmentTitle\":\"Guide\"}]"
                                     },
                                     "videos": {
                                         "type": "array",
@@ -3308,7 +3523,7 @@
                                 "properties": {
                                     "metadata": {
                                         "type": "string",
-                                        "example": "[{\"title\":\"Video 1\",\"description\":\"Overview\",\"seriesId\":\"...\",\"sourceFileName\":\"video-1.mp4\",\"sourceFileSize\":123456}]"
+                                        "example": "[{\"title\":\"Video 1\",\"description\":\"Overview\",\"seriesId\":\"...\",\"gatheringTrackId\":\"...\",\"sourceFileName\":\"video-1.mp4\",\"sourceFileSize\":123456}]"
                                     },
                                     "thumbnails": {
                                         "type": "array",
@@ -3369,6 +3584,11 @@
                                         "nullable": true
                                     },
                                     "smallGroupId": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "nullable": true
+                                    },
+                                    "gatheringTrackId": {
                                         "type": "string",
                                         "format": "uuid",
                                         "nullable": true
@@ -3556,6 +3776,21 @@
                                     },
                                     "description": {
                                         "type": "string",
+                                        "nullable": true
+                                    },
+                                    "seriesId": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "nullable": true
+                                    },
+                                    "smallGroupId": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "nullable": true
+                                    },
+                                    "gatheringTrackId": {
+                                        "type": "string",
+                                        "format": "uuid",
                                         "nullable": true
                                     },
                                     "attachmentTitle": {
@@ -5072,6 +5307,627 @@
                 },
                 "tags": [
                     "Admin Media"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/admin/gatherings": {
+            "get": {
+                "operationId": "GatheringsController_getAllGatherings",
+                "summary": "List gatherings",
+                "description": "Returns gathering/event records with speakers and editable child tracks. Pagination is currently returned as a single page to match existing admin content endpoints.",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "Case-insensitive title search.",
+                        "schema": {
+                            "example": "national",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sortBy",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "createdAt",
+                                "title",
+                                "publishedAt"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "order",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "ASC",
+                                "DESC"
+                            ],
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Admin Gatherings"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            },
+            "post": {
+                "operationId": "GatheringsController_createGathering",
+                "summary": "Create a gathering",
+                "description": "Creates the parent gathering/event. Send speaker and track arrays as JSON strings in multipart form-data. Speaker photos can be uploaded in `speakerPhotos`; use `speakerPhotoIndexes` when photos are sparse or not in speaker order.",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "description": "Create a gathering/event with an optional cover photo, up to 50 keynote speakers, and editable child tracks. If `tracks` is omitted, a default `Keynotes` track is created.",
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "title"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "2026 National Gathering"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "coverPhoto": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "nullable": true
+                                    },
+                                    "thumbnail": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "nullable": true,
+                                        "description": "Alias for coverPhoto. Also accepts image or file for compatibility."
+                                    },
+                                    "speakers": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "example": "[{\"name\":\"Speaker One\",\"sortOrder\":0},{\"name\":\"Speaker Two\",\"sortOrder\":1}]",
+                                        "description": "JSON array, max 50. Each item supports name and optional sortOrder."
+                                    },
+                                    "speakerPhotos": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        },
+                                        "nullable": true,
+                                        "maxItems": 50,
+                                        "description": "Speaker image files. By default file order maps to speakers array order."
+                                    },
+                                    "speakerPhotos[]": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        },
+                                        "nullable": true,
+                                        "maxItems": 50,
+                                        "description": "Alternate field name accepted by the API for speakerPhotos."
+                                    },
+                                    "speakerPhotoIndexes": {
+                                        "type": "string",
+                                        "example": "[0,2]",
+                                        "nullable": true,
+                                        "description": "Optional JSON indexes mapping uploaded speakerPhotos to speakers."
+                                    },
+                                    "tracks": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "example": "[{\"title\":\"Keynotes\",\"sortOrder\":0},{\"title\":\"Track 1\",\"sortOrder\":1},{\"title\":\"Track 2\",\"sortOrder\":2}]",
+                                        "description": "JSON array of child categories/tracks. If omitted, a default Keynotes track is created."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Admin Gatherings"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/admin/gatherings/export": {
+            "get": {
+                "operationId": "GatheringsController_export",
+                "summary": "Export gatherings as CSV",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Admin Gatherings"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/admin/gatherings/{id}": {
+            "get": {
+                "operationId": "GatheringsController_getGathering",
+                "summary": "Get one gathering with speakers, tracks, and videos",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "description": "Gathering/event id.",
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Admin Gatherings"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            },
+            "patch": {
+                "operationId": "GatheringsController_updateGathering",
+                "summary": "Update a gathering",
+                "description": "Updates parent gathering fields and optionally replaces speakers or tracks. When replacing speakers/tracks, include existing item ids to preserve them; omitted existing items are removed.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "description": "Gathering/event id.",
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "description": "Update a gathering/event. Passing `speakers` or `tracks` replaces that collection; include existing item ids to keep/edit them.",
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "coverPhoto": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "nullable": true
+                                    },
+                                    "thumbnail": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "nullable": true,
+                                        "description": "Alias for coverPhoto. Also accepts image or file for compatibility."
+                                    },
+                                    "speakers": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "example": "[{\"id\":\"existing-speaker-uuid\",\"name\":\"Updated Speaker\",\"sortOrder\":0},{\"name\":\"New Speaker\",\"sortOrder\":1}]",
+                                        "description": "JSON array, max 50. Include speaker `id` to update an existing speaker."
+                                    },
+                                    "speakerPhotos": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        },
+                                        "nullable": true,
+                                        "maxItems": 50,
+                                        "description": "Speaker image files. By default file order maps to speakers array order."
+                                    },
+                                    "speakerPhotos[]": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        },
+                                        "nullable": true,
+                                        "maxItems": 50,
+                                        "description": "Alternate field name accepted by the API for speakerPhotos."
+                                    },
+                                    "speakerPhotoIndexes": {
+                                        "type": "string",
+                                        "example": "[0]",
+                                        "nullable": true
+                                    },
+                                    "tracks": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "example": "[{\"id\":\"existing-track-uuid\",\"title\":\"Keynotes\",\"sortOrder\":0},{\"title\":\"Track 1\",\"sortOrder\":1}]",
+                                        "description": "JSON array. Include track `id` to rename/reorder an existing child category."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Admin Gatherings"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            },
+            "delete": {
+                "operationId": "GatheringsController_deleteGathering",
+                "summary": "Delete a gathering",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "description": "Gathering/event id.",
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Admin Gatherings"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/admin/gatherings/{id}/feature": {
+            "patch": {
+                "operationId": "GatheringsController_featureGathering",
+                "summary": "Toggle gathering featured state",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "description": "Gathering/event id.",
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ToggleFeatureDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Admin Gatherings"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/admin/gatherings/feature/reorder": {
+            "patch": {
+                "operationId": "GatheringsController_reorderGatherings",
+                "summary": "Reorder featured gatherings",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BulkReorderDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Admin Gatherings"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/admin/gatherings/{id}/tracks": {
+            "post": {
+                "operationId": "GatheringsController_createTrack",
+                "summary": "Create a gathering child category/track",
+                "description": "Creates an editable child category under a gathering, such as Keynotes, Track 1, Track 2, or a custom admin-provided track name.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "description": "Gathering/event id.",
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateGatheringTrackDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Admin Gatherings"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/admin/gatherings/{id}/tracks/{trackId}": {
+            "patch": {
+                "operationId": "GatheringsController_updateTrack",
+                "summary": "Rename or reorder a gathering track",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "description": "Gathering/event id.",
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "trackId",
+                        "required": true,
+                        "in": "path",
+                        "description": "Gathering track/category id.",
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateGatheringTrackDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Admin Gatherings"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            },
+            "delete": {
+                "operationId": "GatheringsController_deleteTrack",
+                "summary": "Delete a gathering track",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "description": "Gathering/event id.",
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "trackId",
+                        "required": true,
+                        "in": "path",
+                        "description": "Gathering track/category id.",
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Admin Gatherings"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/admin/gatherings/{id}/tracks/{trackId}/video-upload-sessions": {
+            "post": {
+                "operationId": "GatheringsController_createTrackVideoUploadSessions",
+                "summary": "Create direct video upload sessions for a gathering track",
+                "description": "Preferred flow for large videos. Creates Vimeo TUS upload sessions and stores the videos under the selected gathering track/category.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "description": "Gathering/event id.",
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "trackId",
+                        "required": true,
+                        "in": "path",
+                        "description": "Gathering track/category id.",
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "description": "Create direct Vimeo TUS upload sessions for videos under a gathering child category/track.",
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "metadata"
+                                ],
+                                "properties": {
+                                    "metadata": {
+                                        "type": "string",
+                                        "example": "[{\"title\":\"Opening Keynote\",\"description\":\"Main session\",\"sourceFileName\":\"keynote.mp4\",\"sourceFileSize\":123456,\"sourceMimeType\":\"video/mp4\",\"attachmentTitle\":\"Slides\"}]",
+                                        "description": "JSON array. Required fields per item: sourceFileName and sourceFileSize. Optional: title, description, duration, sourceMimeType, attachmentTitle."
+                                    },
+                                    "thumbnails": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        },
+                                        "maxItems": 50,
+                                        "description": "Optional video thumbnail files. Order maps to metadata order unless thumbnailIndexes is supplied."
+                                    },
+                                    "attachments": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        },
+                                        "maxItems": 50,
+                                        "description": "Optional attachment files, such as slides or notes. Order maps to metadata order unless attachmentIndexes is supplied."
+                                    },
+                                    "thumbnailIndexes": {
+                                        "type": "string",
+                                        "example": "[0,2]",
+                                        "nullable": true
+                                    },
+                                    "attachmentIndexes": {
+                                        "type": "string",
+                                        "example": "[1]",
+                                        "nullable": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Admin Gatherings"
                 ],
                 "security": [
                     {
@@ -6631,7 +7487,8 @@
                         "enum": [
                             "VIDEO",
                             "SERIES",
-                            "SMALL_GROUP"
+                            "SMALL_GROUP",
+                            "GATHERING"
                         ],
                         "type": "string"
                     },
@@ -7156,6 +8013,184 @@
                     "updatedAt"
                 ]
             },
+            "GatheringSpeaker": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "photoUrl": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "photoStoragePath": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "photoSignedExpiresAt": {
+                        "format": "date-time",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "sortOrder": {
+                        "type": "number"
+                    },
+                    "gathering": {
+                        "$ref": "#/components/schemas/Gathering"
+                    },
+                    "createdAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "updatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "sortOrder",
+                    "gathering",
+                    "createdAt",
+                    "updatedAt"
+                ]
+            },
+            "Gathering": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "coverPhotoUrl": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "coverPhotoStoragePath": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "coverPhotoSignedExpiresAt": {
+                        "format": "date-time",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "isFeatured": {
+                        "type": "boolean"
+                    },
+                    "featuredOrder": {
+                        "type": "number",
+                        "nullable": true
+                    },
+                    "slug": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "visibility": {
+                        "type": "string",
+                        "enum": [
+                            "PUBLIC",
+                            "PRIVATE",
+                            "UNLISTED"
+                        ]
+                    },
+                    "publishedAt": {
+                        "format": "date-time",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "speakers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/GatheringSpeaker"
+                        }
+                    },
+                    "tracks": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/GatheringTrack"
+                        }
+                    },
+                    "createdAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "updatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "deletedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "title",
+                    "description",
+                    "isFeatured",
+                    "featuredOrder",
+                    "visibility",
+                    "speakers",
+                    "tracks",
+                    "createdAt",
+                    "updatedAt"
+                ]
+            },
+            "GatheringTrack": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "sortOrder": {
+                        "type": "number"
+                    },
+                    "gathering": {
+                        "$ref": "#/components/schemas/Gathering"
+                    },
+                    "videos": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Video"
+                        }
+                    },
+                    "createdAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "updatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "title",
+                    "sortOrder",
+                    "gathering",
+                    "videos",
+                    "createdAt",
+                    "updatedAt"
+                ]
+            },
             "Video": {
                 "type": "object",
                 "properties": {
@@ -7211,6 +8246,9 @@
                     },
                     "smallGroup": {
                         "$ref": "#/components/schemas/SmallGroup"
+                    },
+                    "gatheringTrack": {
+                        "$ref": "#/components/schemas/GatheringTrack"
                     },
                     "createdBy": {
                         "$ref": "#/components/schemas/User"
@@ -8437,6 +9475,46 @@
                             ]
                         },
                         "description": "Optional subset of Firebase-backed media types to refresh. Defaults to all supported targets."
+                    }
+                }
+            },
+            "CreateGatheringTrackDto": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "example": "Track 1"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Breakout track description."
+                    },
+                    "sortOrder": {
+                        "type": "number",
+                        "minimum": 0,
+                        "example": 1
+                    }
+                },
+                "required": [
+                    "title"
+                ]
+            },
+            "UpdateGatheringTrackDto": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "example": "Track 1"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Updated track description."
+                    },
+                    "sortOrder": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000,
+                        "example": 1
                     }
                 }
             },

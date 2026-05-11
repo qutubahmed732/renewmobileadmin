@@ -35,8 +35,7 @@ export default function SmallGroupsTable() {
   useEffect(() => {
     const fetchSmallGroupData = async () => {
       try {
-        const token = localStorage.getItem("authorized token");
-        const result = await getSmallGroupsAction(token);
+        const result = await getSmallGroupsAction();
 
         if (handleUnauthorized(result)) return;
         if (result.success) {
@@ -66,8 +65,6 @@ export default function SmallGroupsTable() {
   };
 
   const deleteHandler = async (id: string) => {
-    const token = localStorage.getItem("authorized token");
-    if (!token) return;
     const ok = await confirm({
       title: "Delete Small Group",
       message: "This will permanently delete the group and all associated data.",
@@ -75,7 +72,7 @@ export default function SmallGroupsTable() {
       danger: true,
     });
     if (!ok) return;
-    const res = await deleteSmallGroupAction(id, token as string);
+    const res = await deleteSmallGroupAction(id);
     if (res.success) {
       setData((prev: any) => prev.filter((item: any) => item.id !== id));
       setIsSheetOpen(false);

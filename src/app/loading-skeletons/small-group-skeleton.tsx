@@ -5,11 +5,6 @@
       {[...Array(5)].map((_, index) => (
         <tr key={index} className="animate-pulse border-b border-slate-100 dark:border-slate-800">
           
-          <td className="px-6 py-8 align-top">
-            <div className="w-4 h-4 bg-slate-200 dark:bg-slate-700 rounded mt-1" />
-          </td>
-
-          
           <td className="px-6 py-8">
             <div className="flex gap-4">
               

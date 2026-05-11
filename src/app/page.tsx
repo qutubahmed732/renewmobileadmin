@@ -5,6 +5,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { loginAction } from './loadAction';
 import { verifyMfaLoginAction } from './MFAactions';
+import { setAuthCookie } from '@/lib/auth-cookies';
 import Link from 'next/link';
 
 type Login = {
@@ -58,8 +59,7 @@ const AdminLogin = () => {
         const token = responseData?.accessToken;
 
         if (token) {
-          localStorage.setItem("authorized token", token);
-          console.log("Token saved in local storage as 'authorized token'");
+          await setAuthCookie(token);
           router.push("/dashboard");
         } else {
           console.error("Token not found in response body", result);
@@ -86,7 +86,7 @@ const AdminLogin = () => {
       if (result?.success) {
         const token = result?.data?.data?.accessToken;
         if (token) {
-          localStorage.setItem("authorized token", token);
+          await setAuthCookie(token);
           router.push("/dashboard");
         } else {
           console.error("Final Token not found in MFA verify response");

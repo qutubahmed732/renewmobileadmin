@@ -1,8 +1,11 @@
 "use server";
 
+import { getAuthToken } from "@/lib/auth-cookies";
+
 const BASE_URL = "https://application.renew.org";
 
-export async function deleteVideoAction(id: string, tokenID: string) {
+export async function deleteVideoAction(id: string) {
+  const tokenID = await getAuthToken();
   try {
     const res = await fetch(`${BASE_URL}/admin/videos/${id}`, {
       method: "DELETE",
@@ -24,7 +27,8 @@ export async function deleteVideoAction(id: string, tokenID: string) {
   }
 }
 
-export async function deleteSeriesAction(id: string, tokenID: string) {
+export async function deleteSeriesAction(id: string) {
+  const tokenID = await getAuthToken();
   try {
     const res = await fetch(`${BASE_URL}/admin/series/${id}`, {
       method: "DELETE",
@@ -46,7 +50,8 @@ export async function deleteSeriesAction(id: string, tokenID: string) {
   }
 }
 
-export async function deleteSmallGroupAction(id: string, tokenID: string) {
+export async function deleteSmallGroupAction(id: string) {
+  const tokenID = await getAuthToken();
   try {
     const res = await fetch(`${BASE_URL}/admin/small-groups/${id}`, {
       method: "DELETE",
@@ -68,7 +73,8 @@ export async function deleteSmallGroupAction(id: string, tokenID: string) {
   }
 }
 
-export async function deleteUserAction(id: string, tokenID: string) {
+export async function deleteUserAction(id: string) {
+  const tokenID = await getAuthToken();
   try {
     const res = await fetch(`${BASE_URL}/admin/users/${id}`, {
       method: "DELETE",
@@ -90,7 +96,8 @@ export async function deleteUserAction(id: string, tokenID: string) {
   }
 }
 
-export async function deleteTeamMemberAction(id: string, tokenID: string) {
+export async function deleteTeamMemberAction(id: string) {
+  const tokenID = await getAuthToken();
   try {
     const res = await fetch(`${BASE_URL}/admin/team-members/${id}`, {
       method: "DELETE",
@@ -112,7 +119,8 @@ export async function deleteTeamMemberAction(id: string, tokenID: string) {
   }
 }
 
-export async function updateUserRoleAction(tokenID: string, userId: string, role: string) {
+export async function updateUserRoleAction(userId: string, role: string) {
+  const tokenID = await getAuthToken();
   try {
     const res = await fetch(`${BASE_URL}/admin/users/${userId}`, {
       method: "PATCH",
@@ -133,7 +141,7 @@ export async function updateUserRoleAction(tokenID: string, userId: string, role
   }
 }
 
-export async function createTeamMemberAction(tokenID: string, body: {
+export async function createTeamMemberAction(body: {
   firstName: string;
   lastName: string;
   email: string;
@@ -141,6 +149,7 @@ export async function createTeamMemberAction(tokenID: string, body: {
   password?: string;
   role?: string;
 }) {
+  const tokenID = await getAuthToken();
   try {
     const res = await fetch(`${BASE_URL}/admin/team-members`, {
       method: "POST",

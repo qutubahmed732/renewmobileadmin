@@ -29,6 +29,8 @@ interface VideoItem {
   thumbnailUrl: string;
   views: number;
   series: { title: string } | null;
+  gatheringTrack?: { id: string; title: string; gathering?: { title: string } } | null;
+  smallGroup?: { id: string; title: string } | null;
   author?: string;
 }
 
@@ -41,7 +43,6 @@ export default function VideosList() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [token, setToken] = useState<string | null>(null);
   const itemsPerPage = 8;
 
   const router = useRouter()
@@ -50,15 +51,9 @@ export default function VideosList() {
   const handleUnauthorized = useAuthRedirect()
 
   useEffect(() => {
-    setToken(localStorage.getItem("authorized token"));
-  }, []);
-
-  useEffect(() => {
-    if (token === null) return;
     const fetchVideosData = async () => {
       try {
-
-        const result = await getVideosAction(token);
+        const result = await getVideosAction();
 
         if (handleUnauthorized(result)) return;
         if (result.success) {
@@ -74,7 +69,7 @@ export default function VideosList() {
       }
     };
     fetchVideosData();
-  }, [token]);
+  }, []);
 
   const handleRowClick = (video: any) => {
     const urlParts = video.vimeoVideoUrl?.split('/') || [];
@@ -120,7 +115,6 @@ export default function VideosList() {
   // }
 
   const deleteHandler = async (id: string) => {
-    if (!token) return;
     const ok = await confirm({
       title: "Delete Video",
       message: "This action cannot be undone. The video will be permanently removed.",
@@ -129,7 +123,7 @@ export default function VideosList() {
     });
     if (!ok) return;
 
-    const res = await deleteVideoAction(id, token);
+    const res = await deleteVideoAction(id);
     if (res.success) {
       setData((prev) => prev.filter((video) => video.id !== id));
       setIsSheetOpen(false);
@@ -218,7 +212,7 @@ export default function VideosList() {
                             {video.title}
                           </span>
                           <span className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 truncate max-w-62.5">
-                            {video.series?.title || "No Series"}
+                            {video.series?.title || video.gatheringTrack?.gathering?.title || video.smallGroup?.title || "No Series"}
                           </span>
                         </div>
                       </div>

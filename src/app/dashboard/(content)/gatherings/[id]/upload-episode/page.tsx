@@ -5,8 +5,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { ArrowLeft, Upload, FileVideo, Loader2, CheckCircle2, X, AlertTriangle } from "lucide-react";
 import * as tus from "tus-js-client";
+import { createGatheringTrackVideoSessionAction } from "@/app/gatheringActions";
 import {
-  createSmallGroupEpisodeSessionAction,
   completeVideoUploadAction,
   cancelVideoUploadAction,
   getVideoUploadStatusAction,
@@ -30,10 +30,12 @@ const PHASE_LABELS: Record<UploadPhase, string> = {
   error: "Upload failed",
 };
 
-export default function UploadSmallGroupEpisodePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: groupId } = use(params);
+export default function GatheringUploadEpisodePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: gatheringId } = use(params);
   const searchParams = useSearchParams();
-  const groupTitle = searchParams.get("title") ?? "Small Group";
+  const gatheringTitle = searchParams.get("title") ?? "Gathering";
+  const trackId = searchParams.get("trackId") ?? "";
+  const trackName = searchParams.get("trackName") ?? "Track";
   const router = useRouter();
   const { toast } = useToast();
 
@@ -67,15 +69,13 @@ export default function UploadSmallGroupEpisodePage({ params }: { params: Promis
 
   useEffect(() => {
     if (!loading) return;
-    const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-    };
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
   }, [loading]);
 
   const handleBack = useCallback(() => {
-    router.push("/dashboard/small-group");
+    router.push("/dashboard/gatherings");
   }, [router]);
 
   const handleCancelUpload = useCallback(async () => {
@@ -87,7 +87,7 @@ export default function UploadSmallGroupEpisodePage({ params }: { params: Promis
       try { await cancelVideoUploadAction(videoIdRef.current); } catch {}
     }
     reset();
-    router.push("/dashboard/small-group");
+    router.push("/dashboard/gatherings");
   }, [reset, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -99,7 +99,11 @@ export default function UploadSmallGroupEpisodePage({ params }: { params: Promis
       return;
     }
     if (!title.trim()) {
-      toast({ type: "error", title: "Title required", message: "Please enter an episode title." });
+      toast({ type: "error", title: "Title required", message: "Please enter a track title." });
+      return;
+    }
+    if (!trackId) {
+      toast({ type: "error", title: "Track missing", message: "No track selected. Please go back and try again." });
       return;
     }
 
@@ -120,7 +124,7 @@ export default function UploadSmallGroupEpisodePage({ params }: { params: Promis
       formData.append("thumbnailIndexes", "[0]");
     }
 
-    const sessionRes = await createSmallGroupEpisodeSessionAction(groupId, formData);
+    const sessionRes = await createGatheringTrackVideoSessionAction(gatheringId, trackId, formData);
 
     if (!sessionRes.success) {
       const msg =
@@ -177,7 +181,7 @@ export default function UploadSmallGroupEpisodePage({ params }: { params: Promis
           setPhase("done");
           toast({ type: "success", title: "Episode uploaded!", message: "Your episode is being processed by Vimeo and will appear shortly." });
           reset();
-          router.push("/dashboard/small-group");
+          router.push("/dashboard/gatherings");
           return;
         }
 
@@ -189,7 +193,7 @@ export default function UploadSmallGroupEpisodePage({ params }: { params: Promis
           setPhase("done");
           toast({ type: "success", title: "Episode uploaded!", message: "Your episode is being processed and will appear shortly." });
           reset();
-          router.push("/dashboard/small-group");
+          router.push("/dashboard/gatherings");
         } else {
           const errMsg = completeRes.data?.message || completeRes.error || "Episode reached Vimeo but backend failed to finalize.";
           toast({ type: "error", title: "Finalization failed", message: String(errMsg) });
@@ -214,14 +218,13 @@ export default function UploadSmallGroupEpisodePage({ params }: { params: Promis
           className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors disabled:opacity-40"
         >
           <ArrowLeft size={16} />
-          Back to Small Groups
+          Back to Gatherings
         </button>
 
         <div className="bg-white dark:bg-[#111318] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
 
           <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-white/5">
-            <h1 className="text-lg font-bold text-slate-900 dark:text-white">Upload Episode</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 truncate">{groupTitle}</p>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-white">Upload Track</h1>
           </div>
 
           {loading ? (
@@ -244,14 +247,14 @@ export default function UploadSmallGroupEpisodePage({ params }: { params: Promis
 
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                Episode Title <span className="text-rose-500">*</span>
+                Track Title <span className="text-rose-500">*</span>
               </label>
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
                 disabled={loading}
-                placeholder="Enter episode title…"
+                placeholder="Enter track title…"
                 className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-amber-500 outline-none transition-all disabled:opacity-60"
               />
             </div>
@@ -263,7 +266,7 @@ export default function UploadSmallGroupEpisodePage({ params }: { params: Promis
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 disabled={loading}
-                placeholder="Enter episode description…"
+                placeholder="Enter description…"
                 className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-amber-500 outline-none resize-none transition-all disabled:opacity-60"
               />
             </div>
@@ -403,7 +406,7 @@ export default function UploadSmallGroupEpisodePage({ params }: { params: Promis
                   : phase === "uploading" ? `${uploadProgress}%`
                   : phase === "finalizing" ? "Finalizing…"
                   : "Uploading…"
-                  : "Upload Episode"}
+                  : "Upload Track"}
               </button>
             </div>
           </form>

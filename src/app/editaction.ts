@@ -1,5 +1,7 @@
 "use server"
 
+import { getAuthToken } from "@/lib/auth-cookies";
+
 const BASE_URL = "https://application.renew.org";
 
 /** Strips empty file inputs from FormData so the backend doesn't receive a 0-byte file field */
@@ -15,7 +17,8 @@ function stripEmptyFiles(formData: FormData): FormData {
   return clean;
 }
 
-export async function updateVideoAction(id: string, formData: FormData, tokenID: string) {
+export async function updateVideoAction(id: string, formData: FormData) {
+  const tokenID = await getAuthToken();
   try {
     const body = stripEmptyFiles(formData);
 
@@ -43,7 +46,8 @@ export async function updateVideoAction(id: string, formData: FormData, tokenID:
   }
 }
 
-export async function updateSeriesAction(id: string, formData: FormData, tokenID: string) {
+export async function updateSeriesAction(id: string, formData: FormData) {
+  const tokenID = await getAuthToken();
   try {
     const body = stripEmptyFiles(formData);
 
@@ -71,7 +75,8 @@ export async function updateSeriesAction(id: string, formData: FormData, tokenID
   }
 }
 
-export async function updateSmallGroupAction(id: string, formData: FormData, tokenID: string) {
+export async function updateSmallGroupAction(id: string, formData: FormData) {
+  const tokenID = await getAuthToken();
   try {
     const body = stripEmptyFiles(formData);
 

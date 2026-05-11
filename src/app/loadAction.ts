@@ -1,5 +1,7 @@
 "use server";
 
+import { getAuthToken } from "@/lib/auth-cookies";
+
 const BASE_URL = "https://application.renew.org";
 
 
@@ -37,7 +39,8 @@ export async function loginAction(formData: any) {
 }
 
 // users fetching function
-export async function searchUserByEmailAction(token: string | null, email: string) {
+export async function searchUserByEmailAction(email: string) {
+  const token = await getAuthToken();
   try {
     const response = await fetch(
       `${BASE_URL}/admin/users?page=1&limit=5&search=${encodeURIComponent(email)}`,
@@ -56,7 +59,8 @@ export async function searchUserByEmailAction(token: string | null, email: strin
   }
 }
 
-export async function getUsersAction(token: string | null, page: number = 1, limit: number = 10, role: string, search?: string) {
+export async function getUsersAction(page: number = 1, limit: number = 10, role: string, search?: string) {
+  const token = await getAuthToken();
   try {
     const params = new URLSearchParams({
       page: String(page),
@@ -94,7 +98,8 @@ export async function getUsersAction(token: string | null, page: number = 1, lim
   }
 }
 
-export async function getDashboardStatsAction(token: string | null) {
+export async function getDashboardStatsAction() {
+  const token = await getAuthToken();
   try {
     const response = await fetch(
       `${BASE_URL}/admin/dashboard/stats`,
@@ -126,7 +131,8 @@ export async function getDashboardStatsAction(token: string | null) {
 }
 
 // videos fetching function
-export async function getVideosAction(token: string | null) {
+export async function getVideosAction() {
+  const token = await getAuthToken();
   try {
     const response = await
       fetch(`${BASE_URL}/admin/videos?sortBy=createdAt&order=DESC`,
@@ -157,7 +163,8 @@ export async function getVideosAction(token: string | null) {
 }
 
 // series fetching function
-export async function getSeriesAction(token: string | null) {
+export async function getSeriesAction() {
+  const token = await getAuthToken();
   try {
     const response = await fetch(
       `${BASE_URL}/admin/series?sortBy=createdAt&order=DESC`,
@@ -188,7 +195,8 @@ export async function getSeriesAction(token: string | null) {
 }
 
 // getsmallgroups fetching function
-export async function getSmallGroupsAction(token: string | null) {
+export async function getSmallGroupsAction() {
+  const token = await getAuthToken();
   try {
     const response = await fetch(
       `${BASE_URL}/admin/small-groups?sortBy=createdAt&order=DESC`,
@@ -219,7 +227,8 @@ export async function getSmallGroupsAction(token: string | null) {
 }
 
 // getTeam members fetching function
-export async function getTeamMembersAction(token: string | null) {
+export async function getTeamMembersAction() {
+  const token = await getAuthToken();
   try {
     const response = await fetch(`${BASE_URL}/admin/team-members`, {
       method: "GET",

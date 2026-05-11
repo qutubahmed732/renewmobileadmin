@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { LayoutDashboard, Users, Video, Layers, Users2, Settings, Clapperboard, Upload, UserCircle2 } from "lucide-react"
+import { LayoutDashboard, Users, Video, Layers, Users2, Settings, Clapperboard, Upload, UserCircle2, Mic } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   Accordion,
@@ -80,6 +80,7 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
                   <NavItem icon={<Video size={18} />} link="/dashboard/videos" label="Videos" />
                   <NavItem icon={<Layers size={18} />} link="/dashboard/series" label="Series" />
                   <NavItem icon={<Users2 size={18} />} link="/dashboard/small-group" label="Small Groups" />
+                  <NavItem icon={<Mic size={18} />} link="/dashboard/gatherings" label="Gatherings" />
                 </div>
               </AccordionContent>
             </AccordionItem>

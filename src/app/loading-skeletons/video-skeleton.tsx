@@ -7,7 +7,6 @@ export default function VideoSkeleton() {
         <tr key={i} className="animate-pulse border-b border-slate-100 dark:border-white/5">
           <td className="px-6 py-4">
             <div className="flex items-center gap-4">
-              <div className="w-4 h-4 rounded bg-slate-200 dark:bg-slate-800" />
               <div className="shrink-0 w-20 md:w-24 h-12 md:h-14 rounded-md bg-slate-200 dark:bg-slate-800" />
               <div className="flex flex-col gap-2 min-w-0">
                 <div className="h-4 w-32 md:w-40 bg-slate-200 dark:bg-slate-800 rounded" />

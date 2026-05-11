@@ -14,7 +14,7 @@ import { useToast } from "@/components/ui/toast";
 
 interface Props {
   type: "video" | "series" | "small-group" | "gathering";
-  onUpload: (token: string, formData: FormData) => Promise<any>;
+  onUpload: (formData: FormData) => Promise<any>;
   onCancel: () => void;
 }
 
@@ -66,16 +66,13 @@ export default function UploadForm({ type, onUpload, onCancel }: Props) {
 
   // ── Cancel mid-upload ──────────────────────────────────────────────────────
   const handleCancelUpload = useCallback(async () => {
-    // Abort the TUS transfer first
     if (tusUploadRef.current) {
       try { tusUploadRef.current.abort(); } catch {}
       tusUploadRef.current = null;
     }
-    // Tell the backend to cancel (cleans up Vimeo & DB record)
-    const token = localStorage.getItem("authorized token");
-    if (videoIdRef.current && token) {
+    if (videoIdRef.current) {
       try {
-        await cancelVideoUploadAction(token, videoIdRef.current);
+        await cancelVideoUploadAction(videoIdRef.current);
       } catch {}
     }
     setLoading(false);
@@ -92,8 +89,6 @@ export default function UploadForm({ type, onUpload, onCancel }: Props) {
     setLoading(true);
     setUploadProgress(0);
     setPhase("idle");
-
-    const token = localStorage.getItem("authorized token");
 
     // ── VIDEO (3-phase TUS) ────────────────────────────────────────────────
     if (type === "video") {
@@ -116,7 +111,7 @@ export default function UploadForm({ type, onUpload, onCancel }: Props) {
       if (coverFile && coverFile.size > 0) sessionData.append("thumbnail", coverFile);
 
       console.log("[Upload] Phase 1 — creating session...");
-      const sessionRes = await createVideoSessionAction(token!, sessionData);
+      const sessionRes = await createVideoSessionAction(sessionData);
 
       if (!sessionRes.success) {
         const msg =
@@ -181,7 +176,7 @@ export default function UploadForm({ type, onUpload, onCancel }: Props) {
           setPhase("finalizing");
 
           // ── Phase 3: Complete Upload ───────────────────────────────────
-          const completeRes = await completeVideoUploadAction(token!, videoId);
+          const completeRes = await completeVideoUploadAction(videoId);
 
           if (completeRes.success) {
             setPhase("done");
@@ -198,7 +193,7 @@ export default function UploadForm({ type, onUpload, onCancel }: Props) {
             // Poll upload-status as a fallback — backend sometimes returns non-200 even on success
             console.warn("[Upload] completeUpload non-success, polling status...", completeRes);
 
-            const statusRes = await getVideoUploadStatusAction(token!, videoId);
+            const statusRes = await getVideoUploadStatusAction(videoId);
             const statusPayload = statusRes.data?.data ?? statusRes.data;
             const status: string = statusPayload?.status || "";
 
@@ -247,31 +242,7 @@ export default function UploadForm({ type, onUpload, onCancel }: Props) {
 
     if (coverFile && coverFile.size > 0) cleanFormData.append("thumbnail", coverFile);
 
-    if (type === "small-group") {
-      const userRaw =
-        localStorage.getItem("user") ||
-        localStorage.getItem("userData") ||
-        localStorage.getItem("userInfo");
-      let userId: string | null = null;
-      if (userRaw) {
-        try {
-          const parsed = JSON.parse(userRaw);
-          userId = parsed?.id || parsed?.userId || null;
-        } catch {}
-      }
-      if (!userId) {
-        const tokenStr = localStorage.getItem("authorized token");
-        if (tokenStr) {
-          try {
-            const payload = JSON.parse(atob(tokenStr.split(".")[1]));
-            userId = payload?.sub || payload?.id || null;
-          } catch {}
-        }
-      }
-      if (userId) cleanFormData.append("createdById", userId);
-    }
-
-    const res = await onUpload(token!, cleanFormData);
+    const res = await onUpload(cleanFormData);
     if (res.success) {
       toast({
         type: "success",

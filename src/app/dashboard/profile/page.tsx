@@ -30,8 +30,7 @@ export default function AdminProfile() {
   async function fetchMfaStatus() {
     try {
       setLoading(true);
-      const token = localStorage.getItem("authorized token");
-      const result = await getMfaStatusAction(token);
+      const result = await getMfaStatusAction();
 
       if (result?.success) {
         // Assume backend returns { data: { enabled: true/false } }
@@ -52,8 +51,7 @@ export default function AdminProfile() {
 
     try {
       setActionLoading(true);
-      const token = localStorage.getItem("authorized token");
-      const result = await setupMfaAction(token, currentPassword);
+      const result = await setupMfaAction(currentPassword);
 
       if (result?.success) {
         setSetupMode(true);
@@ -85,8 +83,7 @@ export default function AdminProfile() {
 
     try {
       setActionLoading(true);
-      const token = localStorage.getItem("authorized token");
-      const result = await verifyMfaSetupAction(token, verifyCode, factorId);
+      const result = await verifyMfaSetupAction(verifyCode, factorId);
 
       if (result?.success) {
         setMfaEnabled(true);
@@ -122,8 +119,7 @@ export default function AdminProfile() {
 
     try {
       setActionLoading(true);
-      const token = localStorage.getItem("authorized token");
-      const result = await disableMfaAction(token, currentPassword, disableCode);
+      const result = await disableMfaAction(currentPassword, disableCode);
 
       if (result?.success) {
         setMfaEnabled(false);

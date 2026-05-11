@@ -2,7 +2,9 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
-import { Upload, X, Plus, UserRound } from "lucide-react";
+import { Upload, X, Plus, UserRound, Loader2 } from "lucide-react";
+import { createGatheringAction } from "@/app/gatheringActions";
+import { useToast } from "@/components/ui/toast";
 
 interface Keynote {
   id: number;
@@ -16,11 +18,13 @@ interface Props {
 }
 
 export default function GatheringForm({ onCancel }: Props) {
+  const { toast } = useToast();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [keynotes, setKeynotes] = useState<Keynote[]>([{ id: Date.now(), name: "", photo: null, preview: null }]);
+  const [loading, setLoading] = useState(false);
 
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -43,9 +47,51 @@ export default function GatheringForm({ onCancel }: Props) {
     ));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // API wiring goes here when endpoint is available
+    if (loading) return;
+
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("title", name.trim());
+      if (description.trim()) formData.append("description", description.trim());
+      if (coverFile) formData.append("thumbnail", coverFile);
+
+      // Build speakers JSON and collect photos with their indexes
+      const filledKeynotes = keynotes.filter((k) => k.name.trim());
+      if (filledKeynotes.length > 0) {
+        const speakersJson = filledKeynotes.map((k, i) => ({ name: k.name.trim(), sortOrder: i }));
+        formData.append("speakers", JSON.stringify(speakersJson));
+
+        const photoIndexes: number[] = [];
+        filledKeynotes.forEach((k, i) => {
+          if (k.photo) {
+            formData.append("speakerPhotos[]", k.photo);
+            photoIndexes.push(i);
+          }
+        });
+        if (photoIndexes.length > 0) {
+          formData.append("speakerPhotoIndexes", JSON.stringify(photoIndexes));
+        }
+      }
+
+      const result = await createGatheringAction(formData);
+
+      if (result.success) {
+        toast({ type: "success", title: "Gathering created!", message: "Your gathering has been created successfully." });
+        onCancel();
+      } else {
+        const msg = Array.isArray(result.data?.message)
+          ? result.data.message.join(", ")
+          : result.data?.message || result.message || "Something went wrong.";
+        toast({ type: "error", title: "Creation failed", message: String(msg) });
+      }
+    } catch {
+      toast({ type: "error", title: "Error", message: "An unexpected error occurred." });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -70,8 +116,9 @@ export default function GatheringForm({ onCancel }: Props) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
+            disabled={loading}
             placeholder="Enter gathering name…"
-            className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-amber-500 outline-none transition-all"
+            className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-amber-500 outline-none transition-all disabled:opacity-60"
           />
         </div>
 
@@ -84,8 +131,9 @@ export default function GatheringForm({ onCancel }: Props) {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
+            disabled={loading}
             placeholder="Enter gathering description…"
-            className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-amber-500 outline-none resize-none transition-all"
+            className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-amber-500 outline-none resize-none transition-all disabled:opacity-60"
           />
         </div>
 
@@ -95,7 +143,7 @@ export default function GatheringForm({ onCancel }: Props) {
             Gathering Cover Photo
           </label>
           <div
-            className="relative border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-yellow-50/20 dark:bg-yellow-500/5 min-h-[160px] flex items-center justify-center cursor-pointer"
+            className={`relative border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-yellow-50/20 dark:bg-yellow-500/5 min-h-[160px] flex items-center justify-center cursor-pointer ${loading ? "pointer-events-none opacity-60" : ""}`}
             onClick={() => coverInputRef.current?.click()}
           >
             <input
@@ -136,17 +184,18 @@ export default function GatheringForm({ onCancel }: Props) {
           </div>
         </div>
 
-        {/* Keynotes */}
+        {/* Keynotes / Speakers */}
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <div>
-              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Keynotes</label>
+              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Speakers</label>
               <p className="text-xs text-slate-400 mt-0.5">Add one or more speakers for this gathering.</p>
             </div>
             <button
               type="button"
               onClick={addKeynote}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400 border border-amber-500/30 bg-amber-500/8 hover:bg-amber-500/15 rounded-lg transition-colors"
+              disabled={loading}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400 border border-amber-500/30 bg-amber-500/8 hover:bg-amber-500/15 rounded-lg transition-colors disabled:opacity-50"
             >
               <Plus size={14} strokeWidth={2.5} />
               Add Speaker
@@ -159,20 +208,19 @@ export default function GatheringForm({ onCancel }: Props) {
                 key={keynote.id}
                 className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40"
               >
-                {/* Speaker number */}
                 <span className="text-xs font-bold text-slate-400 dark:text-slate-600 w-4 shrink-0">
                   {index + 1}
                 </span>
 
                 {/* Photo upload */}
-                <label className="relative shrink-0 cursor-pointer group">
+                <label className={`relative shrink-0 cursor-pointer group ${loading ? "pointer-events-none" : ""}`}>
                   <input
                     type="file"
                     accept="image/*"
                     className="hidden"
                     onChange={(e) => updateKeynotePhoto(keynote.id, e.target.files?.[0] || null)}
                   />
-                  <div className="w-14 h-14 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center transition-colors group-hover:border-amber-400">
+                  <div className="w-14 h-14 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center transition-colors group-hover:border-amber-400 relative">
                     {keynote.preview ? (
                       <Image src={keynote.preview} alt="Speaker" fill className="object-cover rounded-full" />
                     ) : (
@@ -184,20 +232,19 @@ export default function GatheringForm({ onCancel }: Props) {
                   </div>
                 </label>
 
-                {/* Name input */}
                 <input
                   type="text"
                   value={keynote.name}
                   onChange={(e) => updateKeynoteName(keynote.id, e.target.value)}
+                  disabled={loading}
                   placeholder="Speaker name…"
-                  className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-amber-500 outline-none transition-all"
+                  className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-amber-500 outline-none transition-all disabled:opacity-60"
                 />
 
-                {/* Remove */}
                 <button
                   type="button"
                   onClick={() => removeKeynote(keynote.id)}
-                  disabled={keynotes.length === 1}
+                  disabled={keynotes.length === 1 || loading}
                   className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors disabled:opacity-30 disabled:pointer-events-none"
                 >
                   <X size={16} />
@@ -212,15 +259,18 @@ export default function GatheringForm({ onCancel }: Props) {
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg transition-all"
+            disabled={loading}
+            className="px-6 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg transition-all disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-8 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-lg shadow-sm transition-all active:scale-95"
+            disabled={loading}
+            className="px-8 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-lg shadow-sm transition-all active:scale-95 disabled:opacity-60 flex items-center gap-2"
           >
-            Create Gathering
+            {loading && <Loader2 size={14} className="animate-spin" />}
+            {loading ? "Creating…" : "Create Gathering"}
           </button>
         </div>
       </form>

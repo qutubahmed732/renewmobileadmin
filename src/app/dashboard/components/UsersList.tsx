@@ -43,8 +43,6 @@ export default function UsersList({ role }: { role: string }) {
   }, [searchQuery]);
 
   const deleteHandler = async (id: string) => {
-    const token = localStorage.getItem("authorized token");
-    if (!token) return;
     const ok = await confirm({
       title: "Delete User",
       message: "This will permanently delete the user and all their data.",
@@ -52,7 +50,7 @@ export default function UsersList({ role }: { role: string }) {
       danger: true,
     });
     if (!ok) return;
-    const res = await deleteUserAction(id, token);
+    const res = await deleteUserAction(id);
     if (res.success) {
       setData((prev: any) => prev.filter((u: any) => u.id !== id));
       toast({ type: "success", title: "User deleted", message: "The user has been removed." });
@@ -64,8 +62,7 @@ export default function UsersList({ role }: { role: string }) {
   const fetchUsersData = useCallback(async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("authorized token");
-      const result = await getUsersAction(token, currentPage, 10, role, debouncedSearch);
+      const result = await getUsersAction(currentPage, 10, role, debouncedSearch);
 
       if (handleUnauthorized(result)) return;
       if (result.success) {

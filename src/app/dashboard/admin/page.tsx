@@ -30,8 +30,7 @@ export default function ManageMember() {
     async function getTeamMembers() {
       try {
         setLoading(true);
-        const token = localStorage.getItem("authorized token");
-        const result = await getTeamMembersAction(token);
+        const result = await getTeamMembersAction();
 
         if (handleUnauthorized(result)) return;
         if (result.success) {
@@ -57,8 +56,6 @@ export default function ManageMember() {
   });
 
   const deleteHandler = async (id: string) => {
-    const token = localStorage.getItem("authorized token");
-    if (!token) return;
     const ok = await confirm({
       title: "Delete Team Member",
       message: "This will permanently remove this admin from the team.",
@@ -66,7 +63,7 @@ export default function ManageMember() {
       danger: true,
     });
     if (!ok) return;
-    const res = await deleteTeamMemberAction(id, token);
+    const res = await deleteTeamMemberAction(id);
     if (res.success) {
       setData((prev: any) => prev.filter((m: any) => m.id !== id));
       toast({ type: "success", title: "Member deleted", message: "The team member has been removed." });
@@ -83,9 +80,6 @@ export default function ManageMember() {
 
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault();
-    const token = localStorage.getItem("authorized token");
-    if (!token) return;
-
     setSubmitting(true);
     setExistingMobileUser(null);
     const body: any = {
@@ -97,7 +91,7 @@ export default function ManageMember() {
     if (form.phone.trim()) body.phone = form.phone.trim();
     if (form.password.trim()) body.password = form.password.trim();
 
-    const res = await createTeamMemberAction(token, body);
+    const res = await createTeamMemberAction(body);
     setSubmitting(false);
 
     if (res.success) {
@@ -111,7 +105,7 @@ export default function ManageMember() {
 
       if (isConflict) {
         // Search for the user so we can offer to promote them
-        const searchRes = await searchUserByEmailAction(token, form.email.trim());
+        const searchRes = await searchUserByEmailAction(form.email.trim());
         const items: any[] = searchRes.data?.data?.items || searchRes.data?.items || [];
         const found = items.find((u: any) => u.email?.toLowerCase() === form.email.trim().toLowerCase());
         if (found) {
@@ -127,11 +121,8 @@ export default function ManageMember() {
 
   const handlePromote = async () => {
     if (!existingMobileUser) return;
-    const token = localStorage.getItem("authorized token");
-    if (!token) return;
-
     setPromoting(true);
-    const res = await updateUserRoleAction(token, existingMobileUser.id, form.role);
+    const res = await updateUserRoleAction(existingMobileUser.id, form.role);
     setPromoting(false);
 
     if (res.success) {

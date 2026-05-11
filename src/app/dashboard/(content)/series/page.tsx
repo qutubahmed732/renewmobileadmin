@@ -29,7 +29,6 @@ export default function SeriesList() {
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState("");
 
   const [selectedSeries, setSelectedSeries] = useState(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -38,9 +37,7 @@ export default function SeriesList() {
   useEffect(() => {
     const fetchSeriesData = async () => {
       try {
-
-        const token = localStorage.getItem("authorized token");
-        const result = await getSeriesAction(token);
+        const result = await getSeriesAction();
 
         if (handleUnauthorized(result)) return;
         if (result.success) {
@@ -59,10 +56,6 @@ export default function SeriesList() {
     fetchSeriesData();
   }, []);
 
-  useEffect(() => {
-    const savedToken = localStorage.getItem("authorized token");
-    if (savedToken) setToken(savedToken);
-  }, []);
 
   const handleRowClick = (series: any) => {
     setSelectedSeries(series);
@@ -80,7 +73,6 @@ export default function SeriesList() {
   };
 
   const deleteHandler = async (id: string) => {
-    if (!token) return;
     const ok = await confirm({
       title: "Delete Series",
       message: "This will permanently delete the series and all associated data.",
@@ -88,7 +80,7 @@ export default function SeriesList() {
       danger: true,
     });
     if (!ok) return;
-    const res = await deleteSeriesAction(id, token);
+    const res = await deleteSeriesAction(id);
     if (res.success) {
       setData((prev: any) => prev.filter((s: any) => s.id !== id));
       setIsSheetOpen(false);

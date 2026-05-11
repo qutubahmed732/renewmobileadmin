@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import { usePathname, useRouter } from "next/navigation"
 import Image from "next/image"
 import ThemeBtn from "@/context/ThemeButton"
+import { clearAuthCookie } from "@/lib/auth-cookies"
 
 export default function DashboardClientWrapper({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setSidebarOpen] = useState(true)
@@ -16,11 +17,6 @@ export default function DashboardClientWrapper({ children }: { children: React.R
   const profileRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
   const router = useRouter()
-
-  useEffect(() => {
-    const token = localStorage.getItem("authorized token");
-    if (!token) router.push("/");
-  }, [])
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -32,8 +28,8 @@ export default function DashboardClientWrapper({ children }: { children: React.R
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [])
 
-  const handleLogout = () => {
-    localStorage.removeItem("authorized token");
+  const handleLogout = async () => {
+    await clearAuthCookie();
     router.push("/");
   }
 
@@ -57,6 +53,7 @@ export default function DashboardClientWrapper({ children }: { children: React.R
       "/dashboard/videos": "Videos Content",
       "/dashboard/series": "Series Content",
       "/dashboard/small-group": "Small Groups",
+      "/dashboard/gatherings": "Gatherings",
       "/dashboard/upload": "Upload",
       "/dashboard/profile": "Profile"
     }
