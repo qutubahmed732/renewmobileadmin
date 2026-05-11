@@ -20,13 +20,10 @@ export default function EditContentForm() {
   const { toast } = useToast();
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [file, setFile] = useState<File | null>(null);
-
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      setFile(selectedFile);
       setPreviewUrl(URL.createObjectURL(selectedFile));
     }
     console.log(selectedFile);

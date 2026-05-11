@@ -27,7 +27,7 @@ export default function ForgotPassword() {
 
         setError(result.message)
       }
-    } catch (err) {
+    } catch {
       setError("There is a techinical issue please try again")
     } finally {
       setIsLoading(false)

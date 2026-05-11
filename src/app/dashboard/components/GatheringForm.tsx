@@ -23,7 +23,7 @@ export default function GatheringForm({ onCancel }: Props) {
   const [description, setDescription] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const [keynotes, setKeynotes] = useState<Keynote[]>([{ id: Date.now(), name: "", photo: null, preview: null }]);
+  const [keynotes, setKeynotes] = useState<Keynote[]>(() => [{ id: Date.now(), name: "", photo: null, preview: null }]);
   const [loading, setLoading] = useState(false);
 
   const coverInputRef = useRef<HTMLInputElement>(null);

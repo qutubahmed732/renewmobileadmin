@@ -90,7 +90,7 @@ export async function deleteGatheringAction(id: string) {
       return { success: false, error: data.message || "Failed to delete gathering" };
     }
     return { success: true };
-  } catch (error: any) {
+  } catch {
     return { success: false, error: "Network error occurred." };
   }
 }

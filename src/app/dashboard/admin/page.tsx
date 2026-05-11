@@ -146,7 +146,7 @@ export default function ManageMember() {
               Manage Members
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              View and manage your organization's team members.
+              View and manage your organization&apos;s team members.
             </p>
           </div>
 

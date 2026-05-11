@@ -33,9 +33,7 @@ const PHASE_LABELS: Record<UploadPhase, string> = {
 export default function GatheringUploadEpisodePage({ params }: { params: Promise<{ id: string }> }) {
   const { id: gatheringId } = use(params);
   const searchParams = useSearchParams();
-  const gatheringTitle = searchParams.get("title") ?? "Gathering";
   const trackId = searchParams.get("trackId") ?? "";
-  const trackName = searchParams.get("trackName") ?? "Track";
   const router = useRouter();
   const { toast } = useToast();
 

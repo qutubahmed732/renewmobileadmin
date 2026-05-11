@@ -107,7 +107,7 @@ export async function createVideoSessionAction(formData: FormData) {
     let data;
     try {
       data = JSON.parse(text);
-    } catch (e) {
+    } catch {
       data = { rawText: text }; // Not JSON!
     }
 
@@ -140,7 +140,7 @@ export async function completeVideoUploadAction(videoId: string | number) {
     let data;
     try {
       data = JSON.parse(text);
-    } catch (e) {
+    } catch {
       data = { rawText: text };
     }
 

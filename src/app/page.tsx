@@ -9,8 +9,8 @@ import { setAuthCookie } from '@/lib/auth-cookies';
 import Link from 'next/link';
 
 type Login = {
-  email: String,
-  password: String,
+  email: string,
+  password: string,
   rememberMe: true,
   platform: "IOS",
   deviceId: "string"

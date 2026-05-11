@@ -44,7 +44,7 @@ export default function GatheringEditSheet({ gathering, open, setOpen, onUpdated
   const [description, setDescription] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const [speakers, setSpeakers] = useState<Speaker[]>([{ id: Date.now(), name: "", photo: null, preview: null }]);
+  const [speakers, setSpeakers] = useState<Speaker[]>(() => [{ id: Date.now(), name: "", photo: null, preview: null }]);
   const [loading, setLoading] = useState(false);
 
   const coverInputRef = useRef<HTMLInputElement>(null);

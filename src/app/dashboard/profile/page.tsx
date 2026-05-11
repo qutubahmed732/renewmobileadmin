@@ -23,11 +23,7 @@ export default function AdminProfile() {
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
   const [copiedKeys, setCopiedKeys] = useState<{ [key: string]: boolean }>({});
 
-  useEffect(() => {
-    fetchMfaStatus();
-  }, []);
-
-  async function fetchMfaStatus() {
+  const fetchMfaStatus = async () => {
     try {
       setLoading(true);
       const result = await getMfaStatusAction();
@@ -41,7 +37,11 @@ export default function AdminProfile() {
     } finally {
       setLoading(false);
     }
-  }
+  };
+
+  useEffect(() => {
+    fetchMfaStatus();
+  }, []);
 
   async function handleStartSetup() {
     if (!currentPassword || currentPassword.length < 6) {

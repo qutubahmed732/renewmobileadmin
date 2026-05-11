@@ -308,7 +308,7 @@ export async function resetPasswordAction(oobCode: string, newPassword: string) 
       return { success: false, message: result.message || "Failed to reset password. The link may be expired." };
     }
     return { success: true, message: "Password reset successfully." };
-  } catch (error) {
+  } catch {
     return { success: false, message: "Network error. Please try again." };
   }
 }

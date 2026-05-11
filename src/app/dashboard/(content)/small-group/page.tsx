@@ -216,7 +216,7 @@ export default function SmallGroupsTable() {
                         No Groups Found
                       </h3>
                       <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                        Abhi tak koi small group create nahi kiya gaya hai. Naya group banane ke liye 'Create' button par click karein.
+                        Abhi tak koi small group create nahi kiya gaya hai. Naya group banane ke liye &apos;Create&apos; button par click karein.
                       </p>
                     </div>
                     <Button
