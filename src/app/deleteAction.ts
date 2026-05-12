@@ -27,6 +27,46 @@ export async function deleteVideoAction(id: string) {
   }
 }
 
+export async function publishVideoAction(id: string) {
+  const tokenID = await getAuthToken();
+  try {
+    const res = await fetch(`${BASE_URL}/admin/videos/${id}/publish`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${tokenID}`,
+        "Content-Type": "application/json",
+      },
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      return { success: false, error: errorData.message || "Failed to publish video" };
+    }
+    return { success: true };
+  } catch {
+    return { success: false, error: "Network error occurred." };
+  }
+}
+
+export async function unpublishVideoAction(id: string) {
+  const tokenID = await getAuthToken();
+  try {
+    const res = await fetch(`${BASE_URL}/admin/videos/${id}/unpublish`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${tokenID}`,
+        "Content-Type": "application/json",
+      },
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      return { success: false, error: errorData.message || "Failed to unpublish video" };
+    }
+    return { success: true };
+  } catch {
+    return { success: false, error: "Network error occurred." };
+  }
+}
+
 export async function deleteSeriesAction(id: string) {
   const tokenID = await getAuthToken();
   try {

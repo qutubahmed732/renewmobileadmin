@@ -7,6 +7,8 @@ import {
   Trash2,
   Edit3,
   Calendar,
+  EyeOff,
+  Eye,
 } from "lucide-react"
 import { Pagination } from "@/components/ui/pagination"
 import { Button } from "@/components/ui/button"
@@ -14,7 +16,7 @@ import VideoSkeleton from "../../../loading-skeletons/video-skeleton"
 import { getVideosAction } from "@/app/loadAction"
 import { SeriesDetailSheet } from "@/components/SeriesDetailSheet"
 import { useRouter } from "next/navigation"
-import { deleteVideoAction } from "@/app/deleteAction"
+import { deleteVideoAction, unpublishVideoAction, publishVideoAction } from "@/app/deleteAction"
 import { useToast } from "@/components/ui/toast"
 import { useConfirm } from "@/components/ui/toast"
 import { useAuthRedirect } from "@/hooks/useAuthRedirect"
@@ -113,6 +115,33 @@ export default function VideosList() {
   // const handleUploadClick = () => {
   //   router.push(`/dashboard/videos/upload`);
   // }
+
+  const publishHandler = async (id: string) => {
+    const res = await publishVideoAction(id);
+    if (res.success) {
+      setData((prev) => prev.map((v) => v.id === id ? { ...v, status: "PUBLISHED" } : v));
+      toast({ type: 'success', title: 'Video published', message: 'The video is now live.' });
+    } else {
+      toast({ type: 'error', title: 'Publish failed', message: res.error });
+    }
+  };
+
+  const unpublishHandler = async (id: string) => {
+    const ok = await confirm({
+      title: "Unpublish Video",
+      message: "This will make the video unavailable to users. You can re-publish it later.",
+      confirmLabel: "Unpublish",
+      danger: false,
+    });
+    if (!ok) return;
+    const res = await unpublishVideoAction(id);
+    if (res.success) {
+      setData((prev) => prev.map((v) => v.id === id ? { ...v, status: "DRAFT" } : v));
+      toast({ type: 'success', title: 'Video unpublished', message: 'The video has been unpublished.' });
+    } else {
+      toast({ type: 'error', title: 'Unpublish failed', message: res.error });
+    }
+  };
 
   const deleteHandler = async (id: string) => {
     const ok = await confirm({
@@ -239,6 +268,15 @@ export default function VideosList() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-start gap-2">
+                        {["PUBLISHED", "READY"].includes(video.status?.toUpperCase()) ? (
+                          <Button onClick={() => unpublishHandler(video.id)} variant="outline" size="sm" className="text-amber-600 border-amber-200 dark:border-amber-900/50 hover:bg-amber-50 dark:hover:bg-amber-500/10 h-8">
+                            <EyeOff size={14} /> Unpublish
+                          </Button>
+                        ) : ["UNPUBLISHED", "DRAFT"].includes(video.status?.toUpperCase()) && (
+                          <Button onClick={() => publishHandler(video.id)} variant="outline" size="sm" className="text-emerald-600 border-emerald-200 dark:border-emerald-900/50 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 h-8">
+                            <Eye size={14} /> Publish
+                          </Button>
+                        )}
                         <Button onClick={()=> deleteHandler(video.id)} variant="outline" size="sm" className="text-rose-500 border-rose-200 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-500/10 h-8">
                           <Trash2 size={14} /> Delete
                         </Button>
