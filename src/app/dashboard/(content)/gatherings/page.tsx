@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Search, Trash2, Calendar, Users, Mic, Upload, Edit3 } from "lucide-react";
+import { Search, Trash2, Calendar, Mic, Edit3, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import VideoSkeleton from "../../../loading-skeletons/video-skeleton";
 import { getGatheringsAction, deleteGatheringAction } from "@/app/gatheringActions";
@@ -107,7 +107,6 @@ export default function GatheringsList() {
             <thead>
               <tr className="text-slate-400 dark:text-slate-500 text-sm font-medium border-b border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-transparent">
                 <th className="px-6 py-4">Gatherings</th>
-                <th className="px-6 py-4">Speakers</th>
                 <th className="px-6 py-4">Tracks</th>
                 <th className="px-6 py-4">Created</th>
                 <th className="px-6 py-4">Actions</th>
@@ -124,7 +123,6 @@ export default function GatheringsList() {
                       })
                     : "—";
 
-                  const speakerCount = gathering.speakers?.length ?? 0;
                   const tracks: any[] = Array.isArray(gathering.tracks) ? gathering.tracks : [];
 
                   return (
@@ -162,24 +160,9 @@ export default function GatheringsList() {
                       </td>
 
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-                          <Users size={14} />
-                          <span>{speakerCount} speaker{speakerCount !== 1 ? "s" : ""}</span>
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-4">
-                        {tracks.length > 0 ? (
-                          <div className="flex flex-col gap-1.5">
-                            {tracks.map((track: any) => (
-                              <span key={track.id} className="w-fit text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2.5 py-0.5 rounded-full">
-                                {track.name || track.title || "Track"}
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="text-xs text-slate-400 dark:text-slate-500">No tracks</span>
-                        )}
+                        <span className="inline-flex items-center text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-full">
+                          {tracks.length} {tracks.length === 1 ? "track" : "tracks"}
+                        </span>
                       </td>
 
                       <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
@@ -191,21 +174,6 @@ export default function GatheringsList() {
 
                       <td className="px-6 py-4">
                         <div className="flex flex-wrap gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const firstTrack = tracks[0];
-                              if (firstTrack) {
-                                router.push(`/dashboard/gatherings/${gathering.id}/upload-episode?title=${encodeURIComponent(gathering.title)}&trackId=${firstTrack.id}&trackName=${encodeURIComponent(firstTrack.name || firstTrack.title || "Track")}`);
-                              }
-                            }}
-                            disabled={tracks.length === 0}
-                            className="px-4 text-xs font-medium rounded-sm border-amber-600/20 bg-amber-600/10 text-amber-600 hover:bg-amber-600/20 gap-2 transition-colors disabled:opacity-40"
-                          >
-                            <Upload size={16} strokeWidth={2.5} />
-                            Upload Track
-                          </Button>
                           <Button
                             onClick={() => deleteHandler(gathering.id)}
                             variant="outline"
@@ -224,6 +192,15 @@ export default function GatheringsList() {
                             <Edit3 size={16} strokeWidth={2.5} />
                             Edit
                           </Button>
+                          <Button
+                            onClick={() => router.push(`/dashboard/gatherings/${gathering.id}`)}
+                            variant="outline"
+                            size="sm"
+                            className="text-xs font-medium rounded-sm text-amber-500 border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 gap-2 transition-all"
+                          >
+                            <Settings2 size={16} strokeWidth={2.5} />
+                            Manage
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -231,7 +208,7 @@ export default function GatheringsList() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-20 text-center">
+                  <td colSpan={4} className="px-6 py-20 text-center">
                     <div className="flex flex-col items-center gap-4">
                       <div className="w-16 h-16 rounded-full bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
                         <Mic size={28} className="text-slate-300 dark:text-slate-600" />

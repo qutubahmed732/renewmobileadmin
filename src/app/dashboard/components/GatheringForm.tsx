@@ -2,16 +2,9 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
-import { Upload, X, Plus, UserRound, Loader2 } from "lucide-react";
-import { createGatheringAction } from "@/app/gatheringActions";
+import { Upload, X, UserRound, Loader2 } from "lucide-react";
+import { createGatheringAction, deleteGatheringTrackAction } from "@/app/gatheringActions";
 import { useToast } from "@/components/ui/toast";
-
-interface Keynote {
-  id: number;
-  name: string;
-  photo: File | null;
-  preview: string | null;
-}
 
 interface Props {
   onCancel: () => void;
@@ -21,31 +14,14 @@ export default function GatheringForm({ onCancel }: Props) {
   const { toast } = useToast();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [year, setYear] = useState("");
+  const [location, setLocation] = useState("");
+  const [eventDetails, setEventDetails] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const [keynotes, setKeynotes] = useState<Keynote[]>(() => [{ id: Date.now(), name: "", photo: null, preview: null }]);
   const [loading, setLoading] = useState(false);
 
   const coverInputRef = useRef<HTMLInputElement>(null);
-
-  const addKeynote = () => {
-    setKeynotes((prev) => [...prev, { id: Date.now(), name: "", photo: null, preview: null }]);
-  };
-
-  const removeKeynote = (id: number) => {
-    if (keynotes.length === 1) return;
-    setKeynotes((prev) => prev.filter((k) => k.id !== id));
-  };
-
-  const updateKeynoteName = (id: number, value: string) => {
-    setKeynotes((prev) => prev.map((k) => k.id === id ? { ...k, name: value } : k));
-  };
-
-  const updateKeynotePhoto = (id: number, file: File | null) => {
-    setKeynotes((prev) => prev.map((k) =>
-      k.id === id ? { ...k, photo: file, preview: file ? URL.createObjectURL(file) : null } : k
-    ));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,30 +31,25 @@ export default function GatheringForm({ onCancel }: Props) {
     try {
       const formData = new FormData();
       formData.append("title", name.trim());
+      formData.append("tracks", "[]");
       if (description.trim()) formData.append("description", description.trim());
       if (coverFile) formData.append("thumbnail", coverFile);
-
-      // Build speakers JSON and collect photos with their indexes
-      const filledKeynotes = keynotes.filter((k) => k.name.trim());
-      if (filledKeynotes.length > 0) {
-        const speakersJson = filledKeynotes.map((k, i) => ({ name: k.name.trim(), sortOrder: i }));
-        formData.append("speakers", JSON.stringify(speakersJson));
-
-        const photoIndexes: number[] = [];
-        filledKeynotes.forEach((k, i) => {
-          if (k.photo) {
-            formData.append("speakerPhotos[]", k.photo);
-            photoIndexes.push(i);
-          }
-        });
-        if (photoIndexes.length > 0) {
-          formData.append("speakerPhotoIndexes", JSON.stringify(photoIndexes));
-        }
-      }
+      if (year.trim()) formData.append("year", year.trim());
+      if (location.trim()) formData.append("location", location.trim());
+      if (eventDetails.trim()) formData.append("eventDetails", eventDetails.trim());
 
       const result = await createGatheringAction(formData);
 
       if (result.success) {
+        // Backend auto-creates a default "Keynotes" track if tracks is empty.
+        // Delete any auto-created tracks so the gathering starts clean.
+        const created = result.data?.data ?? result.data;
+        const gatheringId: string = created?.id;
+        const autoTracks: any[] = Array.isArray(created?.tracks) ? created.tracks : [];
+        if (gatheringId && autoTracks.length > 0) {
+          await Promise.all(autoTracks.map((t: any) => deleteGatheringTrackAction(gatheringId, t.id)));
+        }
+
         toast({ type: "success", title: "Gathering created!", message: "Your gathering has been created successfully." });
         onCancel();
       } else {
@@ -137,6 +108,44 @@ export default function GatheringForm({ onCancel }: Props) {
           />
         </div>
 
+        {/* Year */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Year</label>
+          <input
+            type="number"
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+            disabled={loading}
+            placeholder="e.g. 2026"
+            className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-amber-500 outline-none transition-all disabled:opacity-60"
+          />
+        </div>
+
+        {/* Location */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Location</label>
+          <input
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            disabled={loading}
+            placeholder="e.g. Indianapolis, IN"
+            className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-amber-500 outline-none transition-all disabled:opacity-60"
+          />
+        </div>
+
+        {/* Event Details */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Event Details</label>
+          <textarea
+            value={eventDetails}
+            onChange={(e) => setEventDetails(e.target.value)}
+            rows={4}
+            disabled={loading}
+            placeholder="Dates, venue, overview…"
+            className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-amber-500 outline-none resize-none transition-all disabled:opacity-60"
+          />
+        </div>
+
         {/* Cover Photo */}
         <div className="flex flex-col gap-2">
           <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
@@ -181,76 +190,6 @@ export default function GatheringForm({ onCancel }: Props) {
                 <p className="text-xs text-slate-400 mt-1">PNG, JPG, WEBP up to 30 MB</p>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Keynotes / Speakers */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Speakers</label>
-              <p className="text-xs text-slate-400 mt-0.5">Add one or more speakers for this gathering.</p>
-            </div>
-            <button
-              type="button"
-              onClick={addKeynote}
-              disabled={loading}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400 border border-amber-500/30 bg-amber-500/8 hover:bg-amber-500/15 rounded-lg transition-colors disabled:opacity-50"
-            >
-              <Plus size={14} strokeWidth={2.5} />
-              Add Speaker
-            </button>
-          </div>
-
-          <div className="space-y-3">
-            {keynotes.map((keynote, index) => (
-              <div
-                key={keynote.id}
-                className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40"
-              >
-                <span className="text-xs font-bold text-slate-400 dark:text-slate-600 w-4 shrink-0">
-                  {index + 1}
-                </span>
-
-                {/* Photo upload */}
-                <label className={`relative shrink-0 cursor-pointer group ${loading ? "pointer-events-none" : ""}`}>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => updateKeynotePhoto(keynote.id, e.target.files?.[0] || null)}
-                  />
-                  <div className="w-14 h-14 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center transition-colors group-hover:border-amber-400 relative">
-                    {keynote.preview ? (
-                      <Image src={keynote.preview} alt="Speaker" fill className="object-cover rounded-full" />
-                    ) : (
-                      <Upload size={16} className="text-slate-400 group-hover:text-amber-500 transition-colors" />
-                    )}
-                  </div>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center shadow">
-                    <Plus size={10} strokeWidth={3} className="text-white" />
-                  </div>
-                </label>
-
-                <input
-                  type="text"
-                  value={keynote.name}
-                  onChange={(e) => updateKeynoteName(keynote.id, e.target.value)}
-                  disabled={loading}
-                  placeholder="Speaker name…"
-                  className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-amber-500 outline-none transition-all disabled:opacity-60"
-                />
-
-                <button
-                  type="button"
-                  onClick={() => removeKeynote(keynote.id)}
-                  disabled={keynotes.length === 1 || loading}
-                  className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors disabled:opacity-30 disabled:pointer-events-none"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            ))}
           </div>
         </div>
 

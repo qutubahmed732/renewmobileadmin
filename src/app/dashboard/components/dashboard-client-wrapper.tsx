@@ -46,7 +46,7 @@ export default function DashboardClientWrapper({ children }: { children: React.R
   }, [])
 
   useEffect(() => {
-    const routes: Record<string, string> = {
+    const exact: Record<string, string> = {
       "/dashboard": "Dashboard Overview",
       "/dashboard/users": "Users",
       "/dashboard/admin": "Admin",
@@ -55,9 +55,16 @@ export default function DashboardClientWrapper({ children }: { children: React.R
       "/dashboard/small-group": "Small Groups",
       "/dashboard/gatherings": "Gatherings",
       "/dashboard/upload": "Upload",
-      "/dashboard/profile": "Profile"
+      "/dashboard/profile": "Profile",
     }
-    setHeading(routes[pathname] || "Dashboard")
+    const prefix: [string, string][] = [
+      ["/dashboard/gatherings/", "Gatherings"],
+      ["/dashboard/series/", "Series Content"],
+      ["/dashboard/small-group/", "Small Groups"],
+      ["/dashboard/videos/", "Videos Content"],
+    ]
+    const matched = exact[pathname] ?? prefix.find(([p]) => pathname.startsWith(p))?.[1] ?? "Dashboard"
+    setHeading(matched)
   }, [pathname])
 
   return (

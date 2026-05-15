@@ -3,7 +3,7 @@
 import { use, useState, useRef, useCallback, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { ArrowLeft, Upload, FileVideo, Loader2, CheckCircle2, X, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Upload, FileVideo, Loader2, CheckCircle2, X, AlertTriangle, Plus, UserRound } from "lucide-react";
 import * as tus from "tus-js-client";
 import { createGatheringTrackVideoSessionAction } from "@/app/gatheringActions";
 import {
@@ -42,6 +42,7 @@ export default function GatheringUploadEpisodePage({ params }: { params: Promise
   const [uploadProgress, setUploadProgress] = useState(0);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [speakers, setSpeakers] = useState<string[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
@@ -58,6 +59,7 @@ export default function GatheringUploadEpisodePage({ params }: { params: Promise
     setUploadProgress(0);
     setTitle("");
     setDescription("");
+    setSpeakers([]);
     setVideoFile(null);
     setThumbnailFile(null);
     setThumbnailPreview(null);
@@ -73,8 +75,8 @@ export default function GatheringUploadEpisodePage({ params }: { params: Promise
   }, [loading]);
 
   const handleBack = useCallback(() => {
-    router.push("/dashboard/gatherings");
-  }, [router]);
+    router.push(`/dashboard/gatherings/${gatheringId}`);
+  }, [router, gatheringId]);
 
   const handleCancelUpload = useCallback(async () => {
     if (tusUploadRef.current) {
@@ -85,8 +87,8 @@ export default function GatheringUploadEpisodePage({ params }: { params: Promise
       try { await cancelVideoUploadAction(videoIdRef.current); } catch {}
     }
     reset();
-    router.push("/dashboard/gatherings");
-  }, [reset, router]);
+    router.push(`/dashboard/gatherings/${gatheringId}`);
+  }, [reset, router, gatheringId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,9 +110,12 @@ export default function GatheringUploadEpisodePage({ params }: { params: Promise
     setLoading(true);
     setPhase("creating-session");
 
+    const parsedSpeakers = speakers.map((s) => s.trim()).filter(Boolean);
+
     const metadata = JSON.stringify([{
       title: title.trim(),
       description: description.trim() || undefined,
+      speakerNames: parsedSpeakers.length > 0 ? parsedSpeakers : undefined,
       sourceFileName: videoFile.name,
       sourceFileSize: videoFile.size,
     }]);
@@ -179,7 +184,7 @@ export default function GatheringUploadEpisodePage({ params }: { params: Promise
           setPhase("done");
           toast({ type: "success", title: "Episode uploaded!", message: "Your episode is being processed by Vimeo and will appear shortly." });
           reset();
-          router.push("/dashboard/gatherings");
+          router.push(`/dashboard/gatherings/${gatheringId}`);
           return;
         }
 
@@ -191,7 +196,7 @@ export default function GatheringUploadEpisodePage({ params }: { params: Promise
           setPhase("done");
           toast({ type: "success", title: "Episode uploaded!", message: "Your episode is being processed and will appear shortly." });
           reset();
-          router.push("/dashboard/gatherings");
+          router.push(`/dashboard/gatherings/${gatheringId}`);
         } else {
           const errMsg = completeRes.data?.message || completeRes.error || "Episode reached Vimeo but backend failed to finalize.";
           toast({ type: "error", title: "Finalization failed", message: String(errMsg) });
@@ -267,6 +272,66 @@ export default function GatheringUploadEpisodePage({ params }: { params: Promise
                 placeholder="Enter description…"
                 className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-amber-500 outline-none resize-none transition-all disabled:opacity-60"
               />
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Speakers</label>
+                <button
+                  type="button"
+                  onClick={() => setSpeakers((prev) => [...prev, ""])}
+                  disabled={loading}
+                  className="flex items-center gap-1 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 disabled:opacity-40 transition-colors"
+                >
+                  <Plus size={13} /> Add Speaker
+                </button>
+              </div>
+
+              {speakers.length === 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setSpeakers([""])}
+                  disabled={loading}
+                  className="flex items-center justify-center gap-2 w-full py-4 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 transition-all disabled:opacity-40"
+                >
+                  <UserRound size={16} />
+                  Add a speaker
+                </button>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {speakers.map((name, idx) => {
+                    const trimmed = name.trim();
+                    const colors = ["bg-amber-500","bg-sky-500","bg-emerald-500","bg-violet-500","bg-rose-500","bg-orange-500","bg-teal-500","bg-indigo-500"];
+                    let h = 0;
+                    for (let i = 0; i < trimmed.length; i++) h = (h * 31 + trimmed.charCodeAt(i)) & 0xffff;
+                    const color = trimmed ? colors[h % colors.length] : "bg-slate-200 dark:bg-slate-700";
+                    const parts = trimmed.split(/\s+/).filter(Boolean);
+                    const initText = parts.length === 0 ? "?" : parts.length === 1 ? parts[0][0].toUpperCase() : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+                    return (
+                      <div key={idx} className="flex items-center gap-3 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-white/[0.03]">
+                        <div className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold ${color}`}>
+                          {initText}
+                        </div>
+                        <input
+                          value={name}
+                          onChange={(e) => setSpeakers((prev) => prev.map((s, i) => i === idx ? e.target.value : s))}
+                          disabled={loading}
+                          placeholder="Speaker name…"
+                          className="flex-1 bg-transparent text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none disabled:opacity-60"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setSpeakers((prev) => prev.filter((_, i) => i !== idx))}
+                          disabled={loading}
+                          className="shrink-0 text-slate-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 transition-colors disabled:opacity-40"
+                        >
+                          <X size={15} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col gap-1.5">

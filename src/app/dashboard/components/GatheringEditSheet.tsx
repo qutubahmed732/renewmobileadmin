@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { Upload, X, Plus, UserRound, Loader2 } from "lucide-react";
+import { Upload, X, UserRound, Loader2 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -14,21 +14,15 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { updateGatheringAction } from "@/app/gatheringActions";
 import { useToast } from "@/components/ui/toast";
 
-interface Speaker {
-  id: number;
-  name: string;
-  photo: File | null;
-  preview: string | null;
-  existingPhotoUrl?: string | null;
-}
-
 interface Gathering {
   id: string;
   title: string;
   description?: string;
   coverPhotoUrl?: string;
   thumbnailUrl?: string;
-  speakers?: Array<{ id?: string; name: string; photoUrl?: string; sortOrder?: number }>;
+  year?: number;
+  location?: string;
+  eventDetails?: string;
 }
 
 interface Props {
@@ -42,9 +36,11 @@ export default function GatheringEditSheet({ gathering, open, setOpen, onUpdated
   const { toast } = useToast();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [year, setYear] = useState("");
+  const [location, setLocation] = useState("");
+  const [eventDetails, setEventDetails] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const [speakers, setSpeakers] = useState<Speaker[]>(() => [{ id: Date.now(), name: "", photo: null, preview: null }]);
   const [loading, setLoading] = useState(false);
 
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -55,25 +51,10 @@ export default function GatheringEditSheet({ gathering, open, setOpen, onUpdated
     setDescription(gathering.description || "");
     setCoverFile(null);
     setCoverPreview(null);
-    if (gathering.speakers && gathering.speakers.length > 0) {
-      setSpeakers(gathering.speakers.map((s) => ({
-        id: Date.now() + Math.random(),
-        name: s.name,
-        photo: null,
-        preview: null,
-        existingPhotoUrl: s.photoUrl ?? null,
-      })));
-    } else {
-      setSpeakers([{ id: Date.now(), name: "", photo: null, preview: null }]);
-    }
+    setYear(String(gathering.year || ""));
+    setLocation(gathering.location || "");
+    setEventDetails(gathering.eventDetails || "");
   }, [gathering]);
-
-  const addSpeaker = () => setSpeakers((p) => [...p, { id: Date.now(), name: "", photo: null, preview: null }]);
-  const removeSpeaker = (id: number) => { if (speakers.length > 1) setSpeakers((p) => p.filter((s) => s.id !== id)); };
-  const updateName = (id: number, value: string) => setSpeakers((p) => p.map((s) => s.id === id ? { ...s, name: value } : s));
-  const updatePhoto = (id: number, file: File | null) => setSpeakers((p) => p.map((s) =>
-    s.id === id ? { ...s, photo: file, preview: file ? URL.createObjectURL(file) : null } : s
-  ));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,23 +66,9 @@ export default function GatheringEditSheet({ gathering, open, setOpen, onUpdated
       formData.append("title", name.trim());
       if (description.trim()) formData.append("description", description.trim());
       if (coverFile) formData.append("thumbnail", coverFile);
-
-      const filledSpeakers = speakers.filter((s) => s.name.trim());
-      if (filledSpeakers.length > 0) {
-        const speakersJson = filledSpeakers.map((s, i) => ({ name: s.name.trim(), sortOrder: i }));
-        formData.append("speakers", JSON.stringify(speakersJson));
-
-        const photoIndexes: number[] = [];
-        filledSpeakers.forEach((s, i) => {
-          if (s.photo) {
-            formData.append("speakerPhotos[]", s.photo);
-            photoIndexes.push(i);
-          }
-        });
-        if (photoIndexes.length > 0) {
-          formData.append("speakerPhotoIndexes", JSON.stringify(photoIndexes));
-        }
-      }
+      if (year.trim()) formData.append("year", year.trim());
+      if (location.trim()) formData.append("location", location.trim());
+      if (eventDetails.trim()) formData.append("eventDetails", eventDetails.trim());
 
       const result = await updateGatheringAction(gathering.id, formData);
 
@@ -172,6 +139,44 @@ export default function GatheringEditSheet({ gathering, open, setOpen, onUpdated
             />
           </div>
 
+          {/* Year */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Year</label>
+            <input
+              type="number"
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+              disabled={loading}
+              placeholder="e.g. 2026"
+              className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-amber-500 outline-none transition-all disabled:opacity-60"
+            />
+          </div>
+
+          {/* Location */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Location</label>
+            <input
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              disabled={loading}
+              placeholder="e.g. Indianapolis, IN"
+              className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-amber-500 outline-none transition-all disabled:opacity-60"
+            />
+          </div>
+
+          {/* Event Details */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Event Details</label>
+            <textarea
+              value={eventDetails}
+              onChange={(e) => setEventDetails(e.target.value)}
+              rows={4}
+              disabled={loading}
+              placeholder="Dates, venue, overview…"
+              className="w-full px-4 py-2.5 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-amber-500 outline-none resize-none transition-all disabled:opacity-60"
+            />
+          </div>
+
           {/* Cover Photo */}
           <div className="flex flex-col gap-2">
             <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Cover Photo</label>
@@ -223,75 +228,6 @@ export default function GatheringEditSheet({ gathering, open, setOpen, onUpdated
                   <p className="text-xs text-slate-400 mt-1">PNG, JPG, WEBP up to 30 MB</p>
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* Speakers */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Speakers</label>
-                <p className="text-xs text-slate-400 mt-0.5">Replaces all existing speakers.</p>
-              </div>
-              <button
-                type="button"
-                onClick={addSpeaker}
-                disabled={loading}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400 border border-amber-500/30 bg-amber-500/8 hover:bg-amber-500/15 rounded-lg transition-colors disabled:opacity-50"
-              >
-                <Plus size={14} strokeWidth={2.5} />
-                Add Speaker
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {speakers.map((speaker, index) => (
-                <div
-                  key={speaker.id}
-                  className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40"
-                >
-                  <span className="text-xs font-bold text-slate-400 dark:text-slate-600 w-4 shrink-0">{index + 1}</span>
-
-                  <label className={`relative shrink-0 cursor-pointer group ${loading ? "pointer-events-none" : ""}`}>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => updatePhoto(speaker.id, e.target.files?.[0] || null)}
-                    />
-                    <div className="w-14 h-14 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center transition-colors group-hover:border-amber-400 relative">
-                      {speaker.preview ? (
-                        <Image src={speaker.preview} alt="Speaker" fill className="object-cover rounded-full" />
-                      ) : speaker.existingPhotoUrl ? (
-                        <Image src={speaker.existingPhotoUrl} alt="Speaker" fill className="object-cover rounded-full" />
-                      ) : (
-                        <Upload size={16} className="text-slate-400 group-hover:text-amber-500 transition-colors" />
-                      )}
-                    </div>
-                    <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center shadow">
-                      <Plus size={10} strokeWidth={3} className="text-white" />
-                    </div>
-                  </label>
-
-                  <input
-                    type="text"
-                    value={speaker.name}
-                    onChange={(e) => updateName(speaker.id, e.target.value)}
-                    disabled={loading}
-                    placeholder="Speaker name…"
-                    className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-1 focus:ring-amber-500 outline-none transition-all disabled:opacity-60"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => removeSpeaker(speaker.id)}
-                    disabled={speakers.length === 1 || loading}
-                    className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors disabled:opacity-30 disabled:pointer-events-none"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              ))}
             </div>
           </div>
 
