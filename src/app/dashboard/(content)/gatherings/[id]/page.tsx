@@ -143,7 +143,7 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
     setEditTrackLoading(true);
     const fd = new FormData();
     fd.append("title", editTrack.title.trim());
-    if (editTrack.description.trim()) fd.append("description", editTrack.description.trim());
+    fd.append("description", editTrack.description.trim());
     const res = await updateGatheringTrackAction(gatheringId, editTrack.id, fd);
     if (res.success) {
       setGathering((prev) =>
