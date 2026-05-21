@@ -288,6 +288,7 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
         open={editEpisode.open}
         setOpen={(v) => setEditEpisode((s) => ({ ...s, open: v }))}
         onUpdated={handleEpisodeUpdated}
+        showSpeakers
       />
       <MoveEpisodeSheet
         episode={moveEpisode.episode}
