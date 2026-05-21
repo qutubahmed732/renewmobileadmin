@@ -8,6 +8,7 @@ import {
   Eye,
   Calendar,
   Upload,
+  Settings2,
 } from "lucide-react"
 import { SeriesDetailSheet } from "@/components/SeriesDetailSheet";
 import { Button } from "@/components/ui/button";
@@ -215,6 +216,16 @@ export default function SeriesList() {
                         >
                           <Edit3 size={16} strokeWidth={2.5} />
                           Edit
+                        </Button>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => router.push(`/dashboard/series/${series.id}/episodes`)}
+                          className="px-4 text-xs font-medium rounded-sm border-amber-600/20 bg-amber-600/10 text-amber-600 hover:bg-amber-600/20 gap-2 transition-colors"
+                        >
+                          <Settings2 size={16} strokeWidth={2.5} />
+                          Manage
                         </Button>
                       </div>
                     </td>

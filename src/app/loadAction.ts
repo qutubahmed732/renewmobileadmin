@@ -256,6 +256,80 @@ export async function getTeamMembersAction() {
   }
 }
 
+export async function getSeriesDetailAction(id: string) {
+  const token = await getAuthToken();
+  try {
+    const response = await fetch(`${BASE_URL}/admin/series/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token ? `Bearer ${token}` : "",
+      },
+    });
+    const data = await response.json();
+    return { success: response.ok, status: response.status, data };
+  } catch (error: any) {
+    return { success: false, status: 500, message: "Internal Server Error", error };
+  }
+}
+
+export async function getSmallGroupDetailAction(id: string) {
+  const token = await getAuthToken();
+  try {
+    const response = await fetch(`${BASE_URL}/admin/small-groups/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token ? `Bearer ${token}` : "",
+      },
+    });
+    const data = await response.json();
+    return { success: response.ok, status: response.status, data };
+  } catch (error: any) {
+    return { success: false, status: 500, message: "Internal Server Error", error };
+  }
+}
+
+export async function getSeriesVideosAction(seriesId: string) {
+  const token = await getAuthToken();
+  try {
+    const response = await fetch(
+      `${BASE_URL}/admin/videos?seriesId=${seriesId}&sortBy=createdAt&order=ASC`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+      }
+    );
+    const data = await response.json();
+    return { success: response.ok, status: response.status, data };
+  } catch (error: any) {
+    return { success: false, status: 500, message: "Internal Server Error", error };
+  }
+}
+
+export async function getSmallGroupVideosAction(groupId: string) {
+  const token = await getAuthToken();
+  try {
+    const response = await fetch(
+      `${BASE_URL}/admin/videos?smallGroupId=${groupId}&sortBy=createdAt&order=ASC`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : "",
+        },
+      }
+    );
+    const data = await response.json();
+    return { success: response.ok, status: response.status, data };
+  } catch (error: any) {
+    return { success: false, status: 500, message: "Internal Server Error", error };
+  }
+}
+
 // _______________________________________________________________________________
 // =============================== FETCH DATA FUNCTION END ======================== \\
 // _______________________________________________________________________________

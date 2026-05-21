@@ -109,6 +109,23 @@ export async function createGatheringTrackAction(gatheringId: string, formData: 
   }
 }
 
+export async function updateGatheringTrackAction(gatheringId: string, trackId: string, formData: FormData) {
+  const token = await getAuthToken();
+  try {
+    const response = await fetch(`${BASE_URL}/admin/gatherings/${gatheringId}/tracks/${trackId}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    const text = await response.text();
+    let data;
+    try { data = JSON.parse(text); } catch { data = { rawText: text }; }
+    return { success: response.ok, status: response.status, data };
+  } catch (error: any) {
+    return { success: false, status: 500, message: "Internal Server Error", error };
+  }
+}
+
 export async function deleteGatheringTrackAction(gatheringId: string, trackId: string) {
   const token = await getAuthToken();
   try {

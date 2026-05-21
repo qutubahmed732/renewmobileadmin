@@ -21,6 +21,7 @@ import {
   getGatheringDetailAction,
   createGatheringTrackAction,
   deleteGatheringTrackAction,
+  updateGatheringTrackAction,
 } from "@/app/gatheringActions";
 import { deleteVideoAction } from "@/app/deleteAction";
 import { useToast } from "@/components/ui/toast";
@@ -46,6 +47,7 @@ interface Track {
   id: string;
   name?: string;
   title?: string;
+  description?: string;
   episodes?: Episode[];
   videos?: Episode[];
 }
@@ -77,6 +79,9 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
   const [addTrackFor, setAddTrackFor] = useState(false);
   const [newTrackName, setNewTrackName] = useState("");
   const [trackLoading, setTrackLoading] = useState(false);
+
+  const [editTrack, setEditTrack] = useState<{ id: string; title: string; description: string } | null>(null);
+  const [editTrackLoading, setEditTrackLoading] = useState(false);
 
   const [editEpisode, setEditEpisode] = useState<{ open: boolean; trackId: string; episode: Episode | null }>({
     open: false,
@@ -131,6 +136,34 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
       toast({ type: "error", title: "Failed", message: res.error || "Could not create track." });
     }
     setTrackLoading(false);
+  };
+
+  const handleUpdateTrack = async () => {
+    if (!editTrack || !editTrack.title.trim() || editTrackLoading) return;
+    setEditTrackLoading(true);
+    const fd = new FormData();
+    fd.append("title", editTrack.title.trim());
+    if (editTrack.description.trim()) fd.append("description", editTrack.description.trim());
+    const res = await updateGatheringTrackAction(gatheringId, editTrack.id, fd);
+    if (res.success) {
+      setGathering((prev) =>
+        prev
+          ? {
+              ...prev,
+              tracks: (prev.tracks || []).map((t) =>
+                t.id === editTrack.id
+                  ? { ...t, title: editTrack.title.trim(), name: editTrack.title.trim(), description: editTrack.description.trim() }
+                  : t
+              ),
+            }
+          : prev
+      );
+      toast({ type: "success", title: "Track updated", message: "Track details have been saved." });
+      setEditTrack(null);
+    } else {
+      toast({ type: "error", title: "Update failed", message: res.error || "Could not update track." });
+    }
+    setEditTrackLoading(false);
   };
 
   const handleDeleteTrack = async (track: Track) => {
@@ -392,6 +425,12 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
                         <CloudUpload size={13} /> Upload Episode
                       </button>
                       <button
+                        onClick={() => setEditTrack({ id: track.id, title: trackName, description: track.description || "" })}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-all"
+                      >
+                        <Pencil size={13} /> Edit
+                      </button>
+                      <button
                         onClick={() => handleDeleteTrack(track)}
                         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-500 border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 rounded-lg transition-all"
                       >
@@ -399,6 +438,46 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
                       </button>
                     </div>
                   </div>
+
+                  {/* Inline track edit form */}
+                  {editTrack?.id === track.id && (
+                    <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-white/[0.02] space-y-3">
+                      <input
+                        autoFocus
+                        value={editTrack.title}
+                        onChange={(e) => setEditTrack((s) => s ? { ...s, title: e.target.value } : s)}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleUpdateTrack(); } if (e.key === "Escape") setEditTrack(null); }}
+                        disabled={editTrackLoading}
+                        placeholder="Track name…"
+                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-amber-500 disabled:opacity-60"
+                      />
+                      <textarea
+                        value={editTrack.description}
+                        onChange={(e) => setEditTrack((s) => s ? { ...s, description: e.target.value } : s)}
+                        disabled={editTrackLoading}
+                        placeholder="Track description (optional)…"
+                        rows={2}
+                        className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-amber-500 resize-none disabled:opacity-60"
+                      />
+                      <div className="flex items-center gap-2 justify-end">
+                        <button
+                          onClick={() => setEditTrack(null)}
+                          disabled={editTrackLoading}
+                          className="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg disabled:opacity-40"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleUpdateTrack}
+                          disabled={editTrackLoading || !editTrack.title.trim()}
+                          className="px-4 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-lg disabled:opacity-40 flex items-center gap-1.5"
+                        >
+                          {editTrackLoading ? <Loader2 size={13} className="animate-spin" /> : null}
+                          {editTrackLoading ? "Saving…" : "Save"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Episodes */}
                   {!isCollapsed && (episodes.length === 0 ? (

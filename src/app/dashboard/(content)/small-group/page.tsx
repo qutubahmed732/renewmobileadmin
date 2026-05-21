@@ -8,6 +8,7 @@ import {
   Calendar,
   Upload,
   Users,
+  Settings2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react";
@@ -197,6 +198,16 @@ export default function SmallGroupsTable() {
                         >
                           <Edit3 size={16} strokeWidth={2.5} />
                           Edit
+                        </Button>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => router.push(`/dashboard/small-group/${item.id}/episodes`)}
+                          className="px-4 text-xs font-medium rounded-sm border-amber-600/20 bg-amber-600/10 text-amber-600 hover:bg-amber-600/20 gap-2 transition-colors"
+                        >
+                          <Settings2 size={16} strokeWidth={2.5} />
+                          Manage
                         </Button>
                       </div>
                     </td>
