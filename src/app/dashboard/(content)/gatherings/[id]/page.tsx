@@ -78,6 +78,7 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
 
   const [addTrackFor, setAddTrackFor] = useState(false);
   const [newTrackName, setNewTrackName] = useState("");
+  const [newTrackDescription, setNewTrackDescription] = useState("");
   const [trackLoading, setTrackLoading] = useState(false);
 
   const [editTrack, setEditTrack] = useState<{ id: string; title: string; description: string } | null>(null);
@@ -123,6 +124,7 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
     setTrackLoading(true);
     const fd = new FormData();
     fd.append("title", newTrackName.trim());
+    if (newTrackDescription.trim()) fd.append("description", newTrackDescription.trim());
     const res = await createGatheringTrackAction(gatheringId, fd);
     if (res.success) {
       const newTrack = res.data?.data ?? res.data ?? {};
@@ -132,6 +134,7 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
       toast({ type: "success", title: "Track added", message: `"${newTrackName.trim()}" has been created.` });
       setAddTrackFor(false);
       setNewTrackName("");
+      setNewTrackDescription("");
     } else {
       toast({ type: "error", title: "Failed", message: res.error || "Could not create track." });
     }
@@ -335,7 +338,7 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
               </p>
             </div>
             <button
-              onClick={() => { setAddTrackFor(true); setNewTrackName(""); }}
+              onClick={() => { setAddTrackFor(true); setNewTrackName(""); setNewTrackDescription(""); }}
               className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-lg shadow-sm transition-all shrink-0"
             >
               <Plus size={15} /> Add Track
@@ -344,33 +347,41 @@ export default function GatheringDetailPage({ params }: { params: Promise<{ id: 
 
           {/* Inline add track form */}
           {addTrackFor && (
-            <div className="px-6 pb-4 border-t border-slate-100 dark:border-slate-800 pt-4">
-              <div className="flex items-center gap-2">
-                <input
-                  autoFocus
-                  value={newTrackName}
-                  onChange={(e) => setNewTrackName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") { e.preventDefault(); handleAddTrack(); }
-                    if (e.key === "Escape") { setAddTrackFor(false); setNewTrackName(""); }
-                  }}
+            <div className="px-6 pb-4 border-t border-slate-100 dark:border-slate-800 pt-4 space-y-3">
+              <input
+                autoFocus
+                value={newTrackName}
+                onChange={(e) => setNewTrackName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") { setAddTrackFor(false); setNewTrackName(""); setNewTrackDescription(""); }
+                }}
+                disabled={trackLoading}
+                placeholder="Track name…"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-amber-500 disabled:opacity-60"
+              />
+              <textarea
+                value={newTrackDescription}
+                onChange={(e) => setNewTrackDescription(e.target.value)}
+                disabled={trackLoading}
+                placeholder="Track description (optional)…"
+                rows={2}
+                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-amber-500 resize-none disabled:opacity-60"
+              />
+              <div className="flex items-center gap-2 justify-end">
+                <button
+                  onClick={() => { setAddTrackFor(false); setNewTrackName(""); setNewTrackDescription(""); }}
                   disabled={trackLoading}
-                  placeholder="Track name…"
-                  className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 outline-none focus:ring-1 focus:ring-amber-500 disabled:opacity-60"
-                />
+                  className="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg disabled:opacity-40"
+                >
+                  Cancel
+                </button>
                 <button
                   onClick={handleAddTrack}
                   disabled={trackLoading || !newTrackName.trim()}
-                  className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-lg disabled:opacity-40 flex items-center gap-1.5"
+                  className="px-4 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-lg disabled:opacity-40 flex items-center gap-1.5"
                 >
                   {trackLoading ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
-                  {trackLoading ? "Adding…" : "Add"}
-                </button>
-                <button
-                  onClick={() => { setAddTrackFor(false); setNewTrackName(""); }}
-                  className="px-3 py-2 text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg"
-                >
-                  Cancel
+                  {trackLoading ? "Adding…" : "Add Track"}
                 </button>
               </div>
             </div>
